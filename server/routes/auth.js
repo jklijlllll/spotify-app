@@ -1,12 +1,16 @@
 const express = require("express");
-const { request } = require("http");
+const request = require("request");
+const dotenv = require("dotenv");
 
 const router = express.Router();
+
+dotenv.config();
 
 var spotify_client_id = process.env.SPOTIFY_CLIENT_ID;
 var spotify_client_secret = process.env.SPOTIFY_CLIENT_SECRET;
 
 // TODO: change redirect_uri
+var access_token;
 
 var generateRandomString = function (length) {
   var text = "";
@@ -19,12 +23,15 @@ var generateRandomString = function (length) {
   return text;
 };
 
-router.get("/auth/login", (req, res) => {
-  var scope = "streaming  user-read-email  user-read-private";
+router.get("/login", (req, res) => {
+  var scope =
+    "streaming \
+               user-read-email \
+               user-read-private";
 
   var state = generateRandomString(16);
 
-  var auth_query = new URLSearchParams({
+  var auth_query_parameters = new URLSearchParams({
     response_type: "code",
     client_id: spotify_client_id,
     scope: scope,
@@ -38,14 +45,14 @@ router.get("/auth/login", (req, res) => {
   );
 });
 
-router.get("/auth/callback", (req, res) => {
+router.get("/callback", (req, res) => {
   var code = req.query.code;
 
   var authOptions = {
     url: "https://accounts.spotify.com/api/token",
     form: {
       code: code,
-      redirect_uri: "https://localhost:3000/auth/callback",
+      redirect_uri: "http://localhost:3000/auth/callback",
       grant_type: "authorization_code",
     },
     headers: {
@@ -60,17 +67,18 @@ router.get("/auth/callback", (req, res) => {
   };
 
   request.post(authOptions, function (error, response, body) {
-    if (!error && response.statusCode === 200) {
-      var access_token = body.access_token;
+    console.log(body.access_token);
+    if (error === null && response.statusCode === 200) {
+      access_token = body.access_token;
       res.redirect("/");
     }
   });
 });
 
-router.get("/auth/token", (req, res) => {
+router.get("/token", (req, res) => {
   res.json({
     access_token: access_token,
   });
 });
 
-modules.exports = router;
+module.exports = router;
