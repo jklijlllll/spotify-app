@@ -1,0 +1,65 @@
+body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: xx-large;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-image: linear-gradient(120DEG, #1DB954, #191414);
+  }
+
+.app_container {
+  width: 99vw;
+  height: 98.25vh;
+  min-width: 1200px;
+  min-height: 800px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.login_container {
+  border: 1px solid black;
+  background-color: white;
+  max-width: 800px;
+  border-radius: 50px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.app_title {
+  margin-bottom: 20px;
+  margin-left: 20px;
+  margin-right: 20px;
+  line-height: 20px;
+}
+
+.app_description {
+  margin-left: 20px;
+  margin-right: 20px;
+  
+}
+
+.spotify_button {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background-color: #1DB954;
+  margin-bottom: 20px;
+  border: 1px solid #1DB954;
+  border-radius: 5px;
+}
+
+.spotify_icon {
+  height: 30px;
+  width: 30px;
+}
+
+.login_text {
+  color: white;
+}
