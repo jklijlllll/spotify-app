@@ -1,15 +1,17 @@
 const express = require("express");
 const request = require("request");
-const dotenv = require("dotenv");
+const path = require("path");
+require("dotenv").config({
+  path: path.resolve(__dirname, "../../.env"),
+});
 
 const router = express.Router();
-
-dotenv.config();
 
 var spotify_client_id = process.env.SPOTIFY_CLIENT_ID;
 var spotify_client_secret = process.env.SPOTIFY_CLIENT_SECRET;
 
 // TODO: change redirect_uri
+// TODO: add token refresh
 var access_token;
 
 var generateRandomString = function (length) {
@@ -67,7 +69,6 @@ router.get("/callback", (req, res) => {
   };
 
   request.post(authOptions, function (error, response, body) {
-    console.log(body.access_token);
     if (error === null && response.statusCode === 200) {
       access_token = body.access_token;
       res.redirect("/");

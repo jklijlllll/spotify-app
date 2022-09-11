@@ -1,6 +1,6 @@
 import { FunctionComponent, useEffect, useState } from "react";
 import Login from "../../Components/Login";
-import WebPlayback from "../../Components/WebPlayback";
+import Main from "../../Components/Main";
 
 const Home: FunctionComponent<{}> = () => {
   const [token, setToken] = useState("");
@@ -9,7 +9,7 @@ const Home: FunctionComponent<{}> = () => {
     async function getToken() {
       const response = await fetch("/auth/token");
       const json = await response.json();
-      console.log(json.access_token);
+
       setToken(json.access_token);
     }
 
@@ -18,11 +18,7 @@ const Home: FunctionComponent<{}> = () => {
 
   return (
     <div className="app_container">
-      {token === "" || token === undefined ? (
-        <Login />
-      ) : (
-        <WebPlayback token={token} />
-      )}
+      {token === "" || token === undefined ? <Login /> : <Main token={token} />}
     </div>
   );
 };
