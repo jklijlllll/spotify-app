@@ -13,6 +13,8 @@ var spotify_client_secret = process.env.SPOTIFY_CLIENT_SECRET;
 // TODO: change redirect_uri
 // TODO: add token refresh
 var access_token;
+var token_expiry_time;
+var refresh_token;
 
 var generateRandomString = function (length) {
   var text = "";
@@ -71,6 +73,8 @@ router.get("/callback", (req, res) => {
   request.post(authOptions, function (error, response, body) {
     if (error === null && response.statusCode === 200) {
       access_token = body.access_token;
+      token_expiry_time = Date.now() + body.expires_in * 1000;
+      refresh_token = body.refresh_token;
       res.redirect("/");
     }
   });
@@ -79,6 +83,40 @@ router.get("/callback", (req, res) => {
 router.get("/token", (req, res) => {
   res.json({
     access_token: access_token,
+    refresh_token: refresh_token,
+    token_expiry_time: token_expiry_time,
+  });
+});
+
+router.get("/refresh_token", (req, res) => {
+  var authOptions = {
+    url: "http://accounts.spotify.com/api/token",
+    form: {
+      grant_type: "refresh_token",
+      refresh_token: refresh_token,
+    },
+    headers: {
+      Authorization:
+        "Basic " +
+        Buffer.from(spotify_client_id + ":" + spotify_client_secret).toString(
+          "base64"
+        ),
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    json: true,
+  };
+
+  request.post(authOptions, function (error, response, body) {
+    if (error === null && response.statusCode === 200) {
+      access_token = body.access_token;
+      token_expiry_time = Date.now() + body.expires_in * 1000;
+      refresh_token = body.refresh_token;
+
+      res.json({
+        access_token: access_token,
+        token_expiry_time: token_expiry_time,
+      });
+    }
   });
 });
 

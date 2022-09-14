@@ -6,7 +6,6 @@ const Main: FunctionComponent<{ token: String }> = ({ token }) => {
     <div className="main_container">
       <div className="search_container">
         <SearchBar token={token} />
-        {"text"}
       </div>
     </div>
   );

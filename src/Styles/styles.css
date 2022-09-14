@@ -1,12 +1,17 @@
+html {
+  height: 100%;
+  margin: 0px;
+  background-image: linear-gradient(120DEG, #1DB954, #191414);
+  background-size: cover;
+    background-attachment: fixed;
+}
+
 body {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     font-size: xx-large;
-    background-size: cover;
-    background-repeat: no-repeat;
-    background-image: linear-gradient(120DEG, #1DB954, #191414);
   }
 
 .app_container {
@@ -55,13 +60,22 @@ body {
   border-radius: 5px;
 }
 
+a:link { text-decoration: none; }
+a:visited { text-decoration: none; }
+a:hover { text-decoration: none; }
+a:active { text-decoration: none; }
+
 .spotify_icon {
   height: 30px;
   width: 30px;
+  margin-left: 5px;
 }
 
 .login_text {
   color: white;
+  line-height: 0;
+  font-size: 24px;
+  margin-right: 5px;
 }
 
 .MuiFilledInput-root {
@@ -113,6 +127,36 @@ body {
   font-weight: normal;
   margin-top: 5px;
   margin-bottom: 5px;
+}
+
+.playback_container {
+  width: 100%;
+  display: flex;
+  position: fixed;
+  bottom: 0px;
+  left: 0px;
+  background-color: white;
+}
+
+.webplayback_container {
+  display: flex;
+}
+
+.now_playing_info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  margin-left: 10px;
+}
+
+.now_playing_name {
+  font-size: 32px;
+}
+
+.now_playing_artist {
+  font-size: 24px;
+  color: grey;
 }
 
 
