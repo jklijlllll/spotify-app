@@ -78,10 +78,21 @@ a:active { text-decoration: none; }
   margin-right: 5px;
 }
 
+.main_container {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.MuiTextField-root {
+  width: 30% !important;
+  height: 60px !important;
+}
 .MuiFilledInput-root {
   background-color: white !important;
-  width: 600px !important;
-  height: 60px !important;
   z-index: 2!important;
 }
 
@@ -93,21 +104,22 @@ a:active { text-decoration: none; }
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
 }
 
 .search_results_container {
-  padding-top: 60px;
+  width: 30%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  position: absolute;
+  position: relative;
   z-index: 1;
 }
 
 .search_result {
   display: flex;
-  width: 600px;
+  width: 100%;
   align-items: center;
   border: 1px solid black;
   background-color: white;
@@ -138,25 +150,45 @@ a:active { text-decoration: none; }
   background-color: white;
 }
 
-.webplayback_container {
+.webplayback_info {
   display: flex;
+  width: calc(50% - 100px);
+}
+
+.now_playing_cover {
+  width: 64px;
 }
 
 .now_playing_info {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex;  
   flex-direction: column;
   margin-left: 10px;
+  width: calc(100% - 74px);
 }
 
 .now_playing_name {
-  font-size: 32px;
+  font-size: calc(10px + 1.5vw);
+  text-align: left;
 }
 
 .now_playing_artist {
-  font-size: 24px;
+  font-size: calc(4px + 1vw);
   color: grey;
+  text-align: left;
+}
+
+.playback_controls {
+  position: absolute; 
+  left: 0; 
+  right: 0; 
+  margin-left: auto; 
+  margin-right: auto; 
+  width: 192px; 
+}
+
+.MuiIconButton-root {
+  height: 64px !important;
+  width: 64px !important;
 }
 
 

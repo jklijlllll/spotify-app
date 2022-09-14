@@ -33,10 +33,7 @@ export default function useAuth(code: string) {
             }).then (res => {
                 setAccessToken(res.data.accessToken);
                 setRefreshToken(res.data.refreshToken);
-                setExpiresAt(Date.now() + ((res.data.expiresIn - 60) * 1000));
-
-                console.log(Date.now());
-                console.log((Date.now() + ((res.data.expiresIn - 60) * 1000)));
+                setExpiresAt(Date.now() + ((res.data.expiresIn - 60) * 1000));  
                 
                 localStorage.setItem("accessToken", JSON.stringify(res.data.accessToken));
                 localStorage.setItem("refreshToken", JSON.stringify(res.data.refreshToken));

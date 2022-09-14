@@ -6,7 +6,6 @@ const router = express.Router();
 router.post("/login", (req, res) => {
   const code = req.body.code;
 
-  console.log(process.env.REDIRECT_URI);
   const spotifyApi = new SpotifyWebApi({
     redirectUri: process.env.REDIRECT_URI,
     clientId: process.env.SPOTIFY_CLIENT_ID,
@@ -16,6 +15,7 @@ router.post("/login", (req, res) => {
   spotifyApi
     .authorizationCodeGrant(code)
     .then((data) => {
+      console.log(data);
       res.json({
         accessToken: data.body.access_token,
         refreshToken: data.body.refresh_token,

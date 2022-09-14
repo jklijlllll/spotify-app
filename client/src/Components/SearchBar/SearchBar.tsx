@@ -3,7 +3,12 @@ import { FunctionComponent, useState } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import axios from "axios";
 
-const SearchBar: FunctionComponent<{ token: string }> = ({ token }) => {
+const SearchBar: FunctionComponent<{
+  token: string;
+  setTrack: any;
+  is_active: any;
+  deviceId: any;
+}> = ({ token, setTrack, is_active, deviceId }) => {
   const [searchInput, setSearchInput] = useState<string>("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
 
@@ -15,7 +20,12 @@ const SearchBar: FunctionComponent<{ token: string }> = ({ token }) => {
     }
   };
 
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+
   const sendSearch = () => {
+    console.log(token);
     axios
       .get("https://api.spotify.com/v1/search", {
         params: { q: searchInput, type: "track", limit: 5 },
@@ -54,7 +64,24 @@ const SearchBar: FunctionComponent<{ token: string }> = ({ token }) => {
 
       <div className="search_results_container">
         {searchResults.map((result, key) => (
-          <div key={key} className="search_result">
+          <div
+            key={key}
+            className="search_result"
+            onClick={() => {
+              if (is_active) {
+                axios
+                  .put(
+                    "https://api.spotify.com/v1/me/player/play",
+                    { uris: [result.uri], position_ms: 0 },
+                    { headers, params: { device_id: deviceId } }
+                  )
+                  .then((response) => {})
+                  .catch((error) => {
+                    console.log(error);
+                  });
+              }
+            }}
+          >
             <img
               className="search_result_image"
               src={result.album.images[2].url}
