@@ -8,9 +8,10 @@ import { Fade, IconButton, Slider, Tooltip } from "@mui/material";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import VolumeDownIcon from "@mui/icons-material/VolumeDown";
 import VolumeOffIcon from "@mui/icons-material/VolumeOff";
+import DevicesIcon from "@mui/icons-material/Devices";
 
 // TODO: add device control
-// TODO: save player state on reload
+// TODO: save player state and volume on reload
 const WebPlayback: FunctionComponent<{
   token: string;
   current_track: any;
@@ -29,11 +30,20 @@ const WebPlayback: FunctionComponent<{
   setDeviceId,
 }) => {
   const [player, setPlayer] = useState<any>(undefined);
-  const [is_paused, setPaused] = useState(false);
+  const [is_paused, setPaused] = useState(true);
   const [volume, setVolume] = useState(50);
   const [position, setPosition] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
   const [updateTime, setUpdateTime] = useState<number>(0);
+  const [devicesOpen, setDevicesOpen] = useState<boolean>(false);
+
+  const getPosition = () => {
+    if (is_paused) {
+      return position;
+    }
+    let cur_position = position + (performance.now() - updateTime);
+    return cur_position > duration ? duration : cur_position;
+  };
 
   useEffect(() => {
     if (token !== "") {
@@ -85,19 +95,11 @@ const WebPlayback: FunctionComponent<{
     }
   }, [token]);
 
-  const getPosition = () => {
-    if (is_paused) {
-      return position;
-    }
-    let cur_position = position + (performance.now() - updateTime) / 1000;
-    return cur_position > duration ? duration : cur_position;
-  };
-
   const headers = {
     Authorization: `Bearer ${token}`,
   };
 
-  const body = { device_ids: [deviceId], play: true };
+  const body = { device_ids: [deviceId], play: false };
   useEffect(() => {
     if (deviceId === "") return;
 
@@ -111,9 +113,16 @@ const WebPlayback: FunctionComponent<{
 
   useEffect(() => {
     if (!is_active) return;
-
     player.setVolume(volume / 100);
-  }, [volume]);
+  }, [volume, is_active]);
+
+  useEffect(() => {
+    const updateInterval = setInterval(() => {
+      setPosition(getPosition());
+      setUpdateTime(performance.now());
+    }, 100);
+    return () => clearInterval(updateInterval);
+  }, [position, is_paused]);
 
   if (is_active) {
     return (
@@ -126,6 +135,31 @@ const WebPlayback: FunctionComponent<{
                 width: "calc(100% + 20px)",
                 left: "-10px",
               },
+              "& .MuiSlider-track": {
+                left: "-10px !important",
+              },
+            }}
+            max={duration}
+            value={position}
+            onChange={(event: any, newValue: any) => {
+              player.seek(newValue).then(() => {
+                setPosition(newValue);
+                setUpdateTime(performance.now());
+              });
+            }}
+            valueLabelDisplay="auto"
+            valueLabelFormat={(x) => {
+              let minutes = Math.floor(x / 60000);
+              let seconds = Math.floor((x - minutes * 60000) / 1000);
+
+              let minString = minutes.toString();
+              let secString = seconds.toString();
+
+              if (seconds < 10) secString = "0" + secString;
+
+              let timeStamp = minString + ":" + secString;
+
+              return timeStamp;
             }}
           />
         </div>
@@ -165,6 +199,23 @@ const WebPlayback: FunctionComponent<{
             <div className="device_controls_container">
               <Tooltip
                 title={
+                  <div className="devices_container">
+                    <h1 className="devices_title">Devices</h1>
+                  </div>
+                }
+                open={devicesOpen}
+                onClick={() => {
+                  setDevicesOpen((open) => !open);
+                }}
+                arrow
+                placement="top-start"
+              >
+                <IconButton sx={{ marginRight: "20px" }}>
+                  <DevicesIcon fontSize="large" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip
+                title={
                   <div className="volume_control">
                     <Slider
                       sx={{
@@ -173,14 +224,13 @@ const WebPlayback: FunctionComponent<{
                         },
                         color: "black",
                         backgroundColor: "transparent",
-                        height: "280px",
+                        height: "140px",
                       }}
                       orientation="vertical"
                       value={volume}
                       onChange={(event: any, newValue: any) => {
                         setVolume(newValue);
                       }}
-                      aria-label="Temperature"
                       valueLabelDisplay="auto"
                     />
                   </div>
