@@ -9,9 +9,16 @@ import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import VolumeDownIcon from "@mui/icons-material/VolumeDown";
 import VolumeOffIcon from "@mui/icons-material/VolumeOff";
 import DevicesIcon from "@mui/icons-material/Devices";
+import ComputerIcon from "@mui/icons-material/Computer";
+import SmartphoneIcon from "@mui/icons-material/Smartphone";
+import SpeakerIcon from "@mui/icons-material/Speaker";
+import DevicesOtherIcon from "@mui/icons-material/DevicesOther";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 
 // TODO: add device control
 // TODO: save player state and volume on reload
+// TODO: retain volume on playback transfer
 const WebPlayback: FunctionComponent<{
   token: string;
   current_track: any;
@@ -36,6 +43,8 @@ const WebPlayback: FunctionComponent<{
   const [duration, setDuration] = useState<number>(0);
   const [updateTime, setUpdateTime] = useState<number>(0);
   const [devicesOpen, setDevicesOpen] = useState<boolean>(false);
+  const [devicesInfo, setDevicesInfo] = useState<any[]>([]);
+  const [is_liked, setIsLiked] = useState<boolean>(false);
 
   const getPosition = () => {
     if (is_paused) {
@@ -80,7 +89,8 @@ const WebPlayback: FunctionComponent<{
             return;
           }
 
-          setTrack(state.track_window.current_track);
+          console.log(state);
+          setTrack(state.context.metadata.current_item);
           setPaused(state.paused);
           setPosition(state.position);
           setDuration(state.duration);
@@ -99,21 +109,34 @@ const WebPlayback: FunctionComponent<{
     Authorization: `Bearer ${token}`,
   };
 
-  const body = { device_ids: [deviceId], play: false };
-  useEffect(() => {
-    if (deviceId === "") return;
-
+  const transferPlayback = (deviceId: string) => {
     axios
-      .put("https://api.spotify.com/v1/me/player", body, { headers })
+      .put(
+        "https://api.spotify.com/v1/me/player",
+        { device_ids: [deviceId], play: false },
+        { headers }
+      )
       .then((response) => {})
       .catch((error) => {
         console.log(error);
       });
+  };
+
+  useEffect(() => {
+    if (deviceId === "") return;
+
+    transferPlayback(deviceId);
   }, [deviceId]);
 
   useEffect(() => {
     if (!is_active) return;
     player.setVolume(volume / 100);
+    const volumeInterval = setInterval(() => {
+      player.getVolume().then((volume: any) => {
+        setVolume(volume * 100);
+      });
+    }, 1000);
+    return () => clearInterval(volumeInterval);
   }, [volume, is_active]);
 
   useEffect(() => {
@@ -123,6 +146,63 @@ const WebPlayback: FunctionComponent<{
     }, 100);
     return () => clearInterval(updateInterval);
   }, [position, is_paused]);
+
+  useEffect(() => {
+    if (!is_active) return;
+    axios
+      .get("https://api.spotify.com/v1/me/tracks/contains", {
+        params: { ids: current_track.uri.replace("spotify:track:", "") },
+        headers: headers,
+      })
+      .then((response) => {
+        setIsLiked(response.data[0]);
+      })
+      .catch((error) => console.log(error));
+  }, [is_active, current_track]);
+
+  const likeTrack = () => {
+    axios
+      .put(
+        "https://api.spotify.com/v1/me/tracks",
+        { ids: [current_track.uri.replace("spotify:track:", "")] },
+        { headers }
+      )
+      .then((response) => setIsLiked(true))
+      .catch((error) => console.log(error));
+  };
+
+  const unLikeTrack = () => {
+    axios
+      .delete("https://api.spotify.com/v1/me/tracks", {
+        params: { ids: current_track.uri.replace("spotify:track:", "") },
+        headers: headers,
+      })
+      .then((response) => setIsLiked(false))
+      .catch((error) => console.log(error));
+  };
+
+  // TODO: update device info on device change
+  // TODO: fix transfer device issue
+  const updateDeviceInfo = () => {
+    axios
+      .get("https://api.spotify.com/v1/me/player/devices", { headers: headers })
+      .then((response) => {
+        setDevicesInfo(response.data.devices);
+      })
+      .catch((error) => console.log(error));
+  };
+  useEffect(() => {
+    if (!devicesOpen) return;
+    updateDeviceInfo();
+  }, [devicesOpen]);
+
+  let artist_names = "";
+  if (current_track.artists.length > 0) {
+    artist_names = current_track.artists[0].name;
+    for (let i = 1; i < current_track.artists.length; i++) {
+      artist_names = artist_names + ", " + current_track.artists[i].name;
+    }
+  }
 
   if (is_active) {
     return (
@@ -134,9 +214,14 @@ const WebPlayback: FunctionComponent<{
               "& .MuiSlider-rail": {
                 width: "calc(100% + 20px)",
                 left: "-10px",
+                color: "gray",
               },
               "& .MuiSlider-track": {
                 left: "-10px !important",
+                color: "black",
+              },
+              "& .MuiSlider-thumb": {
+                color: "black",
               },
             }}
             max={duration}
@@ -165,17 +250,36 @@ const WebPlayback: FunctionComponent<{
         </div>
         <div className="webplayback_info">
           <img
-            src={current_track.album.images[1].url}
+            src={current_track.images[1].url}
             className="now_playing_cover"
             alt=""
           />
-
-          <div className="now_playing_info">
-            <div className="now_playing_name">{current_track.name}</div>
-            <div className="now_playing_artist">
-              {current_track.artists[0].name}
+          <div className="song_info">
+            <div className="now_playing_info">
+              <div className="now_playing_name">{current_track.name}</div>
+              <div className="now_playing_artist">{artist_names}</div>
+            </div>
+            <div className="like_icon_container">
+              {is_liked ? (
+                <IconButton
+                  onClick={() => {
+                    unLikeTrack();
+                  }}
+                >
+                  <FavoriteIcon fontSize="large" />
+                </IconButton>
+              ) : (
+                <IconButton
+                  onClick={() => {
+                    likeTrack();
+                  }}
+                >
+                  <FavoriteBorderIcon fontSize="large" />
+                </IconButton>
+              )}
             </div>
           </div>
+
           <div className="playback_controls">
             <IconButton onClick={() => player!.previousTrack()}>
               <SkipPreviousIcon fontSize="large" />
@@ -201,6 +305,28 @@ const WebPlayback: FunctionComponent<{
                 title={
                   <div className="devices_container">
                     <h1 className="devices_title">Devices</h1>
+                    {devicesInfo.map((result, key) => (
+                      <div
+                        className="device"
+                        key={key}
+                        style={{ color: result.is_active ? "green" : "black" }}
+                        onClick={() => {
+                          setDevicesOpen(false);
+                          transferPlayback(result.id);
+                        }}
+                      >
+                        {result.type.toLowerCase() === "computer" ? (
+                          <ComputerIcon />
+                        ) : result.type.toLowerCase() === "smartphone" ? (
+                          <SmartphoneIcon />
+                        ) : result.type.toLowerCase() === "speaker" ? (
+                          <SpeakerIcon />
+                        ) : (
+                          <DevicesOtherIcon />
+                        )}
+                        <h2>{result.name}</h2>
+                      </div>
+                    ))}
                   </div>
                 }
                 open={devicesOpen}

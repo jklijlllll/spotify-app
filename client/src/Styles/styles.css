@@ -160,24 +160,44 @@ a:active { text-decoration: none; }
   width: 64px;
 }
 
+.song_info {
+  display: flex;
+  width: calc(50% - 160px);
+  flex-grow: 0;
+  flex-shrink: 0;
+ 
+  align-items: center;
+}
 .now_playing_info {
   display: flex;  
   flex-direction: column;
   margin-left: 10px;
-  width: calc(50% - 160px);
-  flex-grow: 0;
-  flex-shrink: 0;
+  max-width: calc(100% - 94px);
+  margin-right: 20px;
 }
 
 .now_playing_name {
-  font-size: calc(10px + 1.5vw);
+  font-size: 28px;
   text-align: left;
+  text-overflow:ellipsis;
+  overflow:hidden;
+  white-space:nowrap;
 }
 
 .now_playing_artist {
-  font-size: calc(4px + 1vw);
+  font-size: 20px;
   color: grey;
   text-align: left;
+  text-overflow:ellipsis;
+  overflow:hidden;
+  white-space:nowrap;
+}
+
+.like_icon_container {
+  height: 64px;
+  width: 64px;
+  flex-grow: 0;
+  flex-shrink: 0;
 }
 
 .playback_controls {
@@ -235,12 +255,24 @@ a:active { text-decoration: none; }
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  
 }
 
 .devices_title {
-  font-size: 24px;
+  font-size: 18px;
   color: black;
+  line-height: 0;
 }
+
+.device {
+  display:flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+ 
+}
+
 
 
 
