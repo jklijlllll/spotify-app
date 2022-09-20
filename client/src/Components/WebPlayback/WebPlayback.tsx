@@ -46,6 +46,7 @@ const WebPlayback: FunctionComponent<{
   const [devicesInfo, setDevicesInfo] = useState<any[]>([]);
   const [is_liked, setIsLiked] = useState<boolean>(false);
 
+  // TODO: revert current_track changes to track_window
   const getPosition = () => {
     if (is_paused) {
       return position;
@@ -68,10 +69,10 @@ const WebPlayback: FunctionComponent<{
           getOAuthToken: (cb: any) => {
             cb(token);
           },
-          volume: 0.5,
+          volume: 0.25,
         });
 
-        setVolume(50);
+        setVolume(25);
         setPlayer(player);
 
         player.addListener("ready", (device_id: any) => {
@@ -147,18 +148,18 @@ const WebPlayback: FunctionComponent<{
     return () => clearInterval(updateInterval);
   }, [position, is_paused]);
 
-  useEffect(() => {
-    if (!is_active) return;
-    axios
-      .get("https://api.spotify.com/v1/me/tracks/contains", {
-        params: { ids: current_track.uri.replace("spotify:track:", "") },
-        headers: headers,
-      })
-      .then((response) => {
-        setIsLiked(response.data[0]);
-      })
-      .catch((error) => console.log(error));
-  }, [is_active, current_track]);
+  // useEffect(() => {
+  //   if (!is_active) return;
+  //   axios
+  //     .get("https://api.spotify.com/v1/me/tracks/contains", {
+  //       params: { ids: current_track.uri.replace("spotify:track:", "") },
+  //       headers: headers,
+  //     })
+  //     .then((response) => {
+  //       setIsLiked(response.data[0]);
+  //     })
+  //     .catch((error) => console.log(error));
+  // }, [is_active, current_track]);
 
   const likeTrack = () => {
     axios
@@ -198,10 +199,9 @@ const WebPlayback: FunctionComponent<{
 
   let artist_names = "";
   if (current_track.artists.length > 0) {
-    artist_names = current_track.artists[0].name;
-    for (let i = 1; i < current_track.artists.length; i++) {
-      artist_names = artist_names + ", " + current_track.artists[i].name;
-    }
+    artist_names = current_track.artists
+      .map((artist: any) => artist.name)
+      .join(", ");
   }
 
   if (is_active) {

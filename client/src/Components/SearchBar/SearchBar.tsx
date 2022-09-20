@@ -5,10 +5,9 @@ import axios from "axios";
 
 const SearchBar: FunctionComponent<{
   token: string;
-  setTrack: any;
   is_active: any;
   deviceId: any;
-}> = ({ token, setTrack, is_active, deviceId }) => {
+}> = ({ token, is_active, deviceId }) => {
   const [searchInput, setSearchInput] = useState<string>("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
 
@@ -34,7 +33,6 @@ const SearchBar: FunctionComponent<{
         },
       })
       .then(function (response) {
-        console.log(response.data.tracks.items);
         setSearchResults(response.data.tracks.items);
       })
       .catch(function (error) {
