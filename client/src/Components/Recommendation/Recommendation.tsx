@@ -6,7 +6,6 @@ import CheckIcon from "@mui/icons-material/Check";
 import ClearIcon from "@mui/icons-material/Clear";
 
 // TODO: add caching for liked songs and genre options (and all other opi calls)
-// TODO: fix submit button
 const Recommendation: FunctionComponent<{
   token: string;
   is_active: any;
@@ -388,7 +387,7 @@ const Recommendation: FunctionComponent<{
       fontSize: "24px",
       alignItems: "center",
       justifyContent: "center",
-      width: "auto",
+      width: "100%",
       display: "flex",
       border: "1px solid black",
       borderRadius: "5px",
@@ -398,7 +397,7 @@ const Recommendation: FunctionComponent<{
     }),
     menuList: (provided: any, state: any) => ({
       ...provided,
-      height: "200px",
+      maxHeight: "200px",
       border: "1px solid black",
     }),
     option: (provided: any, state: any) => ({
@@ -689,7 +688,7 @@ const Recommendation: FunctionComponent<{
               }
             }}
           >
-            <img src={track.album.images[2].url} />
+            <img src={track.album.images[2].url} alt="song cover" />
             <div className="track_info_container">
               <div className="track_info_title">{track.name} </div>
               <div className="track_info_name">

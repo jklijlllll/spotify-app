@@ -18,6 +18,7 @@ const Login: FunctionComponent<{}> = () => {
           <img
             className="spotify_icon"
             src={require("../../Media/Spotify_Icon_RGB_White.png")}
+            alt="spotify icon"
           />
           <h4 className="login_text">Login with Spotify</h4>
         </a>

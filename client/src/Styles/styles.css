@@ -1,4 +1,6 @@
 /* TODO: seperate styles into files*/
+
+/* App */
 html {
   height: 100%;
   margin: 0px;
@@ -13,19 +15,28 @@ body {
     align-items: center;
     justify-content: center;
     font-size: xx-large;
-  }
-
-.app_container {
-  width: 99vw;
- 
-  min-width: 1200px;
-  min-height: 800px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+    min-width:1200px;        
+    width: auto !important;  
+    width: 1200px;
+    min-height: 800px;
 }
 
+  /* Home */
+.app_container {
+  min-width: 1200px;        
+  width: auto !important;  
+  width: 1200px; 
+  min-height: 800px;
+}
+
+.playback_container {
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  bottom: 0px;
+}
+
+/* Login */
 .login_container {
   border: 1px solid black;
   background-color: white;
@@ -47,7 +58,6 @@ body {
 .app_description {
   margin-left: 20px;
   margin-right: 20px;
-  
 }
 
 .spotify_button {
@@ -79,15 +89,111 @@ a:active { text-decoration: none; }
   margin-right: 5px;
 }
 
+/* Main */
 .main_container {
   height: 100%;
-  width: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  position: relative;
 }
 
+.search_container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+ 
+.recommendation_container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: white;
+  width: 100%;
+}
+
+/* Sidebar */
+.sidebar_container {
+  height: 100%;
+  left: 0;
+  top: 0;
+  position: fixed;
+  background-color: #2F4858;
+  width: 250px;
+  z-index: 4;
+}
+
+.sidebar_content {
+  height: calc(100% - 64px);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar_header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0px 15px 3px -15px white;
+  height: 75px;
+  width: 100%;
+}
+.sidebar_title {
+  font-size: 36px;
+  color: white;
+}
+
+.sidebar_icon {
+  height: 55px;
+  width: 55px;
+}
+
+.sidebar_group_title_container {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.sidebar_group_title {
+  padding-left: 20px;
+  color: lightgray;
+  font-size: 20px;
+  margin: 0;
+  padding-top: 15px;
+ 
+}
+.sidebar_item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.sidebar_item_last {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  box-shadow: 0px 15px 3px -15px white;
+}
+
+.sidebar_item_text {
+  color:white;
+  font-size: 20px;
+  margin: 0px;
+  padding-left: 5px;
+}
+
+.sidebar_collapser {
+  height: 64px;
+  bottom: 0px;
+  position: relative;
+}
+
+
+
+/* Search Bar */
 .MuiTextField-root {
   width: 30% !important;
   height: 60px !important;
@@ -99,13 +205,6 @@ a:active { text-decoration: none; }
 
 .MuiFormLabel-root {
   z-index: 3!important;
-}
-
-.search_container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
 }
 
 .search_results_container {
@@ -142,14 +241,7 @@ a:active { text-decoration: none; }
   margin-bottom: 5px;
 }
 
-.recommendation_container {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background-color: white;
-  width: 100%;
-}
+/* Recommendation */
 
 .recommendation_title {
   font-size: 32px;
@@ -167,7 +259,7 @@ a:active { text-decoration: none; }
 .seed_select_container {
   display: flex;
   justify-content: center;
-  gap: 10%;
+  gap: 5%;
   width: 80%;
   margin-top: 10px;
   margin-bottom: 10px;
@@ -253,19 +345,11 @@ a:active { text-decoration: none; }
   width: 100%;
 }
 
-.playback_container {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  position: fixed;
-  bottom: 0px;
-  left: 0px;
-}
+/* WebPlayback */
 
 .webplayback_info {
   display: flex;
   background-color: white;
-  width: 100%;
 }
 
 .now_playing_cover {
@@ -278,6 +362,7 @@ a:active { text-decoration: none; }
   flex-grow: 0;
   flex-shrink: 0;
   align-items: center;
+  overflow: hidden;
 }
 .now_playing_info {
   display: flex;  
@@ -335,6 +420,7 @@ a:active { text-decoration: none; }
   display: flex;
   align-items: center;
   flex-direction: row-reverse;
+  overflow: hidden;
 }
 
 .volume_control {
@@ -345,6 +431,7 @@ a:active { text-decoration: none; }
   height: 150px;
   width: 20px; 
   background-color: transparent;
+  
 }
 
 .MuiTooltip-tooltip {

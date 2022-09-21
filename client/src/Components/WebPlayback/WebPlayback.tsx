@@ -91,7 +91,7 @@ const WebPlayback: FunctionComponent<{
           }
 
           console.log(state);
-          setTrack(state.context.metadata.current_item);
+          setTrack(state.track_window.current_track);
           setPaused(state.paused);
           setPosition(state.position);
           setDuration(state.duration);
@@ -250,7 +250,7 @@ const WebPlayback: FunctionComponent<{
         </div>
         <div className="webplayback_info">
           <img
-            src={current_track.images[1].url}
+            src={current_track.album.images[1].url}
             className="now_playing_cover"
             alt=""
           />
@@ -303,6 +303,41 @@ const WebPlayback: FunctionComponent<{
             <div className="device_controls_container">
               <Tooltip
                 title={
+                  <div className="volume_control">
+                    <Slider
+                      sx={{
+                        '& input[type="range"]': {
+                          WebkitAppearance: "slider-vertical",
+                        },
+                        color: "black",
+                        backgroundColor: "transparent",
+                        height: "140px",
+                      }}
+                      orientation="vertical"
+                      value={volume}
+                      onChange={(event: any, newValue: any) => {
+                        setVolume(newValue);
+                      }}
+                      valueLabelDisplay="auto"
+                    />
+                  </div>
+                }
+                arrow
+                TransitionComponent={Fade}
+                TransitionProps={{ timeout: 600 }}
+              >
+                <IconButton>
+                  {volume === 0 ? (
+                    <VolumeOffIcon fontSize="large" />
+                  ) : volume < 50 ? (
+                    <VolumeDownIcon fontSize="large" />
+                  ) : (
+                    <VolumeUpIcon fontSize="large" />
+                  )}
+                </IconButton>
+              </Tooltip>
+              <Tooltip
+                title={
                   <div className="devices_container">
                     <h1 className="devices_title">Devices</h1>
                     {devicesInfo.map((result, key) => (
@@ -338,41 +373,6 @@ const WebPlayback: FunctionComponent<{
               >
                 <IconButton sx={{ marginRight: "20px" }}>
                   <DevicesIcon fontSize="large" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip
-                title={
-                  <div className="volume_control">
-                    <Slider
-                      sx={{
-                        '& input[type="range"]': {
-                          WebkitAppearance: "slider-vertical",
-                        },
-                        color: "black",
-                        backgroundColor: "transparent",
-                        height: "140px",
-                      }}
-                      orientation="vertical"
-                      value={volume}
-                      onChange={(event: any, newValue: any) => {
-                        setVolume(newValue);
-                      }}
-                      valueLabelDisplay="auto"
-                    />
-                  </div>
-                }
-                arrow
-                TransitionComponent={Fade}
-                TransitionProps={{ timeout: 600 }}
-              >
-                <IconButton>
-                  {volume === 0 ? (
-                    <VolumeOffIcon fontSize="large" />
-                  ) : volume < 50 ? (
-                    <VolumeDownIcon fontSize="large" />
-                  ) : (
-                    <VolumeUpIcon fontSize="large" />
-                  )}
                 </IconButton>
               </Tooltip>
             </div>
