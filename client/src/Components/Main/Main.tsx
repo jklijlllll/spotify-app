@@ -1,16 +1,13 @@
 import { FunctionComponent, useState } from "react";
 import Recommendation from "../Recommendation";
 import SearchBar from "../SearchBar";
-import { ProSidebar, Menu, MenuItem } from "react-pro-sidebar";
 import { CurrentComponent } from "../../Pages/Home/Home";
+import Playlist from "../Playlist";
 
 const Main: FunctionComponent<{
-  token: string;
-  is_active: any;
-  deviceId: any;
   navCollapse: boolean;
   curComp: CurrentComponent;
-}> = ({ token, is_active, deviceId, navCollapse, curComp }) => {
+}> = ({ navCollapse, curComp }) => {
   return (
     <>
       <div
@@ -23,23 +20,15 @@ const Main: FunctionComponent<{
         {curComp === CurrentComponent.Recommendations ? (
           <>
             <div className="search_container">
-              <SearchBar
-                token={token}
-                is_active={is_active}
-                deviceId={deviceId}
-              />
+              <SearchBar />
             </div>
 
             <div className="recommendation_container">
-              <Recommendation
-                token={token}
-                is_active={is_active}
-                deviceId={deviceId}
-              />
+              <Recommendation />
             </div>
           </>
         ) : (
-          <></>
+          <Playlist />
         )}
       </div>
     </>

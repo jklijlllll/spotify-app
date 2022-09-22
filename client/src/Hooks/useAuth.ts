@@ -4,7 +4,7 @@ import axios from "axios";
 export default function useAuth(code: string) {
     const [accessToken, setAccessToken] = useState("");
     const [refreshToken, setRefreshToken] = useState();
-    const [expiresAt, setExpiresAt] = useState<any>();
+    const [expiresAt, setExpiresAt] = useState<number>();
     
     useEffect(() => {
         const accessToken = JSON.parse(localStorage.getItem("accessToken")!);

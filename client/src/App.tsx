@@ -1,7 +1,7 @@
 import "./App.css";
 import Home from "./Pages/Home";
 import Login from "./Components/Login";
-import useAuth from "./useAuth";
+import useAuth from "./Hooks/useAuth";
 
 const code = new URLSearchParams(window.location.search).get("code");
 

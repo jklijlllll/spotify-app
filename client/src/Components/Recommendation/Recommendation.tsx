@@ -1,16 +1,22 @@
 import { Button, Slider, ToggleButton } from "@mui/material";
 import axios from "axios";
-import React, { FunctionComponent, useEffect, useState } from "react";
+import React, {
+  FunctionComponent,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import Select from "react-select";
 import CheckIcon from "@mui/icons-material/Check";
 import ClearIcon from "@mui/icons-material/Clear";
+import { UserContext } from "../../Pages/Home/Home";
 
 // TODO: add caching for liked songs and genre options (and all other opi calls)
+// TODO: add scrolling and load on type (axios cancel token)
 const Recommendation: FunctionComponent<{
-  token: string;
-  is_active: any;
-  deviceId: any;
-}> = ({ token, is_active, deviceId }) => {
+
+}> = () => {
+  const userContext = useContext(UserContext);
   const [artistOptions, setArtistOptions] = useState<
     { label: string; value: string }[]
   >([]);
@@ -169,9 +175,7 @@ const Recommendation: FunctionComponent<{
           axios
             .get("https://api.spotify.com/v1/search", {
               params: { q: artistInput, type: "artist", limit: 5 },
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
+              headers: userContext?.headers,
             })
             .then((response) => {
               let searchResults = [];
@@ -189,9 +193,7 @@ const Recommendation: FunctionComponent<{
           axios
             .get("https://api.spotify.com/v1/search", {
               params: { q: trackInput, type: "track", limit: 5 },
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
+              headers: userContext?.headers,
             })
             .then((response) => {
               console.log(response.data);
@@ -230,9 +232,7 @@ const Recommendation: FunctionComponent<{
   useEffect(() => {
     // axios
     //   .get("https://api.spotify.com/v1/recommendations/available-genre-seeds", {
-    //     headers: {
-    //       Authorization: `Bearer ${token}`,
-    //     },
+    //     headers: userContext?.headers,
     //   })
     //   .then((response) => {
     //     let results = [];
@@ -467,9 +467,7 @@ const Recommendation: FunctionComponent<{
       .get(
         `https://api.spotify.com/v1/recommendations?${seed_artists}&${seed_genres}&${seed_tracks}&${minString}&${maxString}&${targetString}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: userContext?.headers,
         }
       )
       .then((response) => setRecInfo(response.data.tracks));
@@ -669,16 +667,14 @@ const Recommendation: FunctionComponent<{
           <div
             className="track_container"
             onClick={() => {
-              if (is_active) {
+              if (userContext?.is_active) {
                 axios
                   .put(
                     "https://api.spotify.com/v1/me/player/play",
                     { uris: [track.uri], position_ms: 0 },
                     {
-                      headers: {
-                        Authorization: `Bearer ${token}`,
-                      },
-                      params: { device_id: deviceId, play: false },
+                      headers: userContext?.headers,
+                      params: { device_id: userContext.deviceId, play: false },
                     }
                   )
                   .then((response) => {})

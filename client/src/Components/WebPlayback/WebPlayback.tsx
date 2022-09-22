@@ -1,4 +1,4 @@
-import { FunctionComponent, useEffect, useState } from "react";
+import { FunctionComponent, useContext, useEffect, useState } from "react";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
 import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
@@ -15,25 +15,26 @@ import SpeakerIcon from "@mui/icons-material/Speaker";
 import DevicesOtherIcon from "@mui/icons-material/DevicesOther";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import { UserContext } from "../../Pages/Home/Home";
 
 // TODO: add device control
 // TODO: save player state and volume on reload
 // TODO: retain volume on playback transfer
+// TODO: fix player position when song is loading but not playing
+// TODO: add loading indicator
 const WebPlayback: FunctionComponent<{
-  token: string;
   current_track: any;
   setTrack: any;
-  is_active: any;
+
   setActive: any;
-  deviceId: any;
+
   setDeviceId: any;
 }> = ({
-  token,
   current_track,
   setTrack,
-  is_active,
+
   setActive,
-  deviceId,
+
   setDeviceId,
 }) => {
   const [player, setPlayer] = useState<any>(undefined);
@@ -46,7 +47,8 @@ const WebPlayback: FunctionComponent<{
   const [devicesInfo, setDevicesInfo] = useState<any[]>([]);
   const [is_liked, setIsLiked] = useState<boolean>(false);
 
-  // TODO: revert current_track changes to track_window
+  const userContext = useContext(UserContext);
+
   const getPosition = () => {
     if (is_paused) {
       return position;
@@ -56,7 +58,7 @@ const WebPlayback: FunctionComponent<{
   };
 
   useEffect(() => {
-    if (token !== "") {
+    if (userContext?.token !== "") {
       const script = document.createElement("script");
       script.src = "https://sdk.scdn.co/spotify-player.js";
       script.async = true;
@@ -67,7 +69,7 @@ const WebPlayback: FunctionComponent<{
         const player = new window.Spotify.Player({
           name: "Web Playback SDK",
           getOAuthToken: (cb: any) => {
-            cb(token);
+            cb(userContext?.token);
           },
           volume: 0.25,
         });
@@ -104,18 +106,14 @@ const WebPlayback: FunctionComponent<{
         player.connect();
       };
     }
-  }, [token]);
-
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
+  }, [userContext?.token]);
 
   const transferPlayback = (deviceId: string) => {
     axios
       .put(
         "https://api.spotify.com/v1/me/player",
         { device_ids: [deviceId], play: false },
-        { headers }
+        { headers: userContext?.headers }
       )
       .then((response) => {})
       .catch((error) => {
@@ -124,13 +122,13 @@ const WebPlayback: FunctionComponent<{
   };
 
   useEffect(() => {
-    if (deviceId === "") return;
+    if (userContext?.deviceId === "") return;
 
-    transferPlayback(deviceId);
-  }, [deviceId]);
+    transferPlayback(userContext?.deviceId!);
+  }, [userContext?.deviceId]);
 
   useEffect(() => {
-    if (!is_active) return;
+    if (!userContext!.is_active) return;
     player.setVolume(volume / 100);
     const volumeInterval = setInterval(() => {
       player.getVolume().then((volume: any) => {
@@ -138,7 +136,7 @@ const WebPlayback: FunctionComponent<{
       });
     }, 1000);
     return () => clearInterval(volumeInterval);
-  }, [volume, is_active]);
+  }, [volume, userContext!.is_active]);
 
   useEffect(() => {
     const updateInterval = setInterval(() => {
@@ -149,24 +147,24 @@ const WebPlayback: FunctionComponent<{
   }, [position, is_paused]);
 
   // useEffect(() => {
-  //   if (!is_active) return;
+  //   if (!userContext.is_active) return;
   //   axios
   //     .get("https://api.spotify.com/v1/me/tracks/contains", {
   //       params: { ids: current_track.uri.replace("spotify:track:", "") },
-  //       headers: headers,
+  //       headers: userContext?.headers,
   //     })
   //     .then((response) => {
   //       setIsLiked(response.data[0]);
   //     })
   //     .catch((error) => console.log(error));
-  // }, [is_active, current_track]);
+  // }, [userContext.is_active, current_track]);
 
   const likeTrack = () => {
     axios
       .put(
         "https://api.spotify.com/v1/me/tracks",
         { ids: [current_track.uri.replace("spotify:track:", "")] },
-        { headers }
+        { headers: userContext?.headers }
       )
       .then((response) => setIsLiked(true))
       .catch((error) => console.log(error));
@@ -176,7 +174,7 @@ const WebPlayback: FunctionComponent<{
     axios
       .delete("https://api.spotify.com/v1/me/tracks", {
         params: { ids: current_track.uri.replace("spotify:track:", "") },
-        headers: headers,
+        headers: userContext?.headers,
       })
       .then((response) => setIsLiked(false))
       .catch((error) => console.log(error));
@@ -186,7 +184,9 @@ const WebPlayback: FunctionComponent<{
   // TODO: fix transfer device issue
   const updateDeviceInfo = () => {
     axios
-      .get("https://api.spotify.com/v1/me/player/devices", { headers: headers })
+      .get("https://api.spotify.com/v1/me/player/devices", {
+        headers: userContext?.headers,
+      })
       .then((response) => {
         setDevicesInfo(response.data.devices);
       })
@@ -204,7 +204,7 @@ const WebPlayback: FunctionComponent<{
       .join(", ");
   }
 
-  if (is_active) {
+  if (userContext?.is_active) {
     return (
       <>
         <div className="position_container">

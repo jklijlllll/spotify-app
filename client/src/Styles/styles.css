@@ -191,8 +191,6 @@ a:active { text-decoration: none; }
   position: relative;
 }
 
-
-
 /* Search Bar */
 .MuiTextField-root {
   width: 30% !important;
@@ -470,6 +468,8 @@ a:active { text-decoration: none; }
   gap: 5px;
  
 }
+
+/* Playlist */
 
 
 
