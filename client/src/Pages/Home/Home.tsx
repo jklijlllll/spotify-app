@@ -35,6 +35,7 @@ const Home: FunctionComponent<{ token: string }> = ({ token }) => {
   const [curComp, setCurComp] = useState<CurrentComponent>(
     CurrentComponent.Recommendations
   );
+  const [userProfile, setUserProfile] = useState({});
 
   const headers = {
     Authorization: `Bearer ${token}`,
@@ -45,17 +46,23 @@ const Home: FunctionComponent<{ token: string }> = ({ token }) => {
     headers: headers,
     is_active: is_active,
     deviceId: deviceId,
-    userProfile: null,
+    userProfile: userProfile,
   };
 
+  // TODO: move localstorage get/setItem to hooks
   useEffect(() => {
-    axios
-      .get("https://api.spotify.com/v1/me", { headers: headers })
-      .then((response) => {
-        userContext.userProfile = response.data;
-        console.log(response.data);
-      })
-      .catch((error) => console.log(error));
+    if (localStorage.getItem("user_profile") === null) {
+      axios
+        .get("https://api.spotify.com/v1/me", { headers: headers })
+        .then((response) => {
+          setUserProfile(response.data);
+          localStorage.setItem("user_profile", JSON.stringify(response.data));
+          console.log(response);
+        })
+        .catch((error) => console.log(error));
+    } else {
+      setUserProfile(JSON.parse(localStorage.getItem("user_profile")!));
+    }
   }, [token]);
 
   // TODO: allow player to work on refresh, localstorage

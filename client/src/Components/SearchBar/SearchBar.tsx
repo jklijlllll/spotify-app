@@ -35,6 +35,17 @@ const SearchBar: FunctionComponent<{}> = () => {
   return (
     <>
       <TextField
+        sx={{
+          width: "30%",
+          height: "60px",
+          ".MuiFilledInput-root": {
+            backgroundColor: "white",
+            zIndex: 2,
+          },
+          ".MuiFormLabel-root": {
+            zIndex: 3,
+          },
+        }}
         label="Search"
         variant="filled"
         color="primary"

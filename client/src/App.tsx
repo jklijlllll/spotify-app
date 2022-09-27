@@ -5,6 +5,7 @@ import useAuth from "./Hooks/useAuth";
 
 const code = new URLSearchParams(window.location.search).get("code");
 
+// TODO: add loading indicator
 function App() {
   const token = useAuth(code!);
   return (

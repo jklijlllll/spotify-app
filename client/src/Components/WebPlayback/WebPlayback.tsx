@@ -29,14 +29,7 @@ const WebPlayback: FunctionComponent<{
   setActive: any;
 
   setDeviceId: any;
-}> = ({
-  current_track,
-  setTrack,
-
-  setActive,
-
-  setDeviceId,
-}) => {
+}> = ({ current_track, setTrack, setActive, setDeviceId }) => {
   const [player, setPlayer] = useState<any>(undefined);
   const [is_paused, setPaused] = useState(true);
   const [volume, setVolume] = useState(50);
@@ -146,18 +139,34 @@ const WebPlayback: FunctionComponent<{
     return () => clearInterval(updateInterval);
   }, [position, is_paused]);
 
-  // useEffect(() => {
-  //   if (!userContext.is_active) return;
-  //   axios
-  //     .get("https://api.spotify.com/v1/me/tracks/contains", {
-  //       params: { ids: current_track.uri.replace("spotify:track:", "") },
-  //       headers: userContext?.headers,
-  //     })
-  //     .then((response) => {
-  //       setIsLiked(response.data[0]);
-  //     })
-  //     .catch((error) => console.log(error));
-  // }, [userContext.is_active, current_track]);
+  useEffect(() => {
+    if (!userContext?.is_active) return;
+
+    if (
+      sessionStorage.getItem("current_track") === null ||
+      JSON.parse(sessionStorage.getItem("current_track")!).uri !==
+        current_track.uri
+    ) {
+      axios
+        .get("https://api.spotify.com/v1/me/tracks/contains", {
+          params: { ids: current_track.uri.replace("spotify:track:", "") },
+          headers: userContext?.headers,
+        })
+        .then((response) => {
+          sessionStorage.setItem(
+            "current_track",
+            JSON.stringify({
+              uri: current_track.uri,
+              isLiked: response.data[0],
+            })
+          );
+          setIsLiked(response.data[0]);
+        })
+        .catch((error) => console.log(error));
+    } else {
+      setIsLiked(JSON.parse(sessionStorage.getItem("current_track")!).isLiked);
+    }
+  }, [userContext?.is_active, current_track]);
 
   const likeTrack = () => {
     axios

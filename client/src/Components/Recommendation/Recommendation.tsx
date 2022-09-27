@@ -11,11 +11,10 @@ import CheckIcon from "@mui/icons-material/Check";
 import ClearIcon from "@mui/icons-material/Clear";
 import { UserContext } from "../../Pages/Home/Home";
 
-// TODO: add caching for liked songs and genre options (and all other opi calls)
+// TODO: add loading indicator for recommended tracks
+// TODO: improve UI
 // TODO: add scrolling and load on type (axios cancel token)
-const Recommendation: FunctionComponent<{
-
-}> = () => {
+const Recommendation: FunctionComponent<{}> = () => {
   const userContext = useContext(UserContext);
   const [artistOptions, setArtistOptions] = useState<
     { label: string; value: string }[]
@@ -230,153 +229,31 @@ const Recommendation: FunctionComponent<{
   }, [curSeeds]);
 
   useEffect(() => {
-    // axios
-    //   .get("https://api.spotify.com/v1/recommendations/available-genre-seeds", {
-    //     headers: userContext?.headers,
-    //   })
-    //   .then((response) => {
-    //     let results = [];
-    //     for (const result of response.data.genres) {
-    //       results.push({ label: result, value: result });
-    //     }
-    //     setGenreOptions(results);
-    //   });
+    if (sessionStorage.getItem("genre_seeds") === null) {
+      axios
+        .get(
+          "https://api.spotify.com/v1/recommendations/available-genre-seeds",
+          {
+            headers: userContext?.headers,
+          }
+        )
+        .then((response) => {
+          let results = [];
+          console.log(response);
+          for (const result of response.data.genres) {
+            results.push({ label: result, value: result });
+          }
+          setGenreOptions(results);
+          sessionStorage.setItem("genre_seeds", JSON.stringify(results));
+        });
+    } else {
+      let result = [];
 
-    let options = [
-      "acoustic",
-      "afrobeat",
-      "alt-rock",
-      "alternative",
-      "ambient",
-      "anime",
-      "black-metal",
-      "bluegrass",
-      "blues",
-      "bossanova",
-      "brazil",
-      "breakbeat",
-      "british",
-      "cantopop",
-      "chicago-house",
-      "children",
-      "chill",
-      "classical",
-      "club",
-      "comedy",
-      "country",
-      "dance",
-      "dancehall",
-      "death-metal",
-      "deep-house",
-      "detroit-techno",
-      "disco",
-      "disney",
-      "drum-and-bass",
-      "dub",
-      "dubstep",
-      "edm",
-      "electro",
-      "electronic",
-      "emo",
-      "folk",
-      "forro",
-      "french",
-      "funk",
-      "garage",
-      "german",
-      "gospel",
-      "goth",
-      "grindcore",
-      "groove",
-      "grunge",
-      "guitar",
-      "happy",
-      "hard-rock",
-      "hardcore",
-      "hardstyle",
-      "heavy-metal",
-      "hip-hop",
-      "holidays",
-      "honky-tonk",
-      "house",
-      "idm",
-      "indian",
-      "indie",
-      "indie-pop",
-      "industrial",
-      "iranian",
-      "j-dance",
-      "j-idol",
-      "j-pop",
-      "j-rock",
-      "jazz",
-      "k-pop",
-      "kids",
-      "latin",
-      "latino",
-      "malay",
-      "mandopop",
-      "metal",
-      "metal-misc",
-      "metalcore",
-      "minimal-techno",
-      "movies",
-      "mpb",
-      "new-age",
-      "new-release",
-      "opera",
-      "pagode",
-      "party",
-      "philippines-opm",
-      "piano",
-      "pop",
-      "pop-film",
-      "post-dubstep",
-      "power-pop",
-      "progressive-house",
-      "psych-rock",
-      "punk",
-      "punk-rock",
-      "r-n-b",
-      "rainy-day",
-      "reggae",
-      "reggaeton",
-      "road-trip",
-      "rock",
-      "rock-n-roll",
-      "rockabilly",
-      "romance",
-      "sad",
-      "salsa",
-      "samba",
-      "sertanejo",
-      "show-tunes",
-      "singer-songwriter",
-      "ska",
-      "sleep",
-      "songwriter",
-      "soul",
-      "soundtracks",
-      "spanish",
-      "study",
-      "summer",
-      "swedish",
-      "synth-pop",
-      "tango",
-      "techno",
-      "trance",
-      "trip-hop",
-      "turkish",
-      "work-out",
-      "world-music",
-    ];
-
-    let result = [];
-
-    for (const opt of options) {
-      result.push({ label: opt, value: opt });
+      for (const opt of JSON.parse(sessionStorage.getItem("genre_seeds")!)) {
+        result.push(opt);
+      }
+      setGenreOptions(result);
     }
-    setGenreOptions(result);
   }, []);
 
   const selectStyle = {
@@ -663,7 +540,7 @@ const Recommendation: FunctionComponent<{
       </Button>
 
       <div className="recommended_tracks_container">
-        {recInfo.map((track) => (
+        {recInfo.map((track, key) => (
           <div
             className="track_container"
             onClick={() => {
@@ -683,6 +560,7 @@ const Recommendation: FunctionComponent<{
                   });
               }
             }}
+            key={key}
           >
             <img src={track.album.images[2].url} alt="song cover" />
             <div className="track_info_container">
