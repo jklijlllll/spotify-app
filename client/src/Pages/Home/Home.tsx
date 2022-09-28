@@ -35,6 +35,12 @@ const Home: FunctionComponent<{ token: string }> = ({ token }) => {
   const [curComp, setCurComp] = useState<CurrentComponent>(
     CurrentComponent.Recommendations
   );
+  const [updateRec, setUpdateRec] = useState<number>(0);
+  const [updatePlay, setUpdatePlay] = useState<number>(0);
+
+  let updateArray = [updateRec, updatePlay];
+  let setUpdateArray = [setUpdateRec, setUpdatePlay];
+
   const [userProfile, setUserProfile] = useState({});
 
   const headers = {
@@ -49,7 +55,6 @@ const Home: FunctionComponent<{ token: string }> = ({ token }) => {
     userProfile: userProfile,
   };
 
-  // TODO: move localstorage get/setItem to hooks
   useEffect(() => {
     if (localStorage.getItem("user_profile") === null) {
       axios
@@ -66,10 +71,16 @@ const Home: FunctionComponent<{ token: string }> = ({ token }) => {
   }, [token]);
 
   // TODO: allow player to work on refresh, localstorage
+  // TODO: only provide context where necessary
+  // TODO: refractor common api calls into global functions
   return (
     <UserContext.Provider value={userContext}>
       <div className="app_container">
-        <Main navCollapse={navCollapse} curComp={curComp} />
+        <Main
+          navCollapse={navCollapse}
+          curComp={curComp}
+          update={updateArray}
+        />
       </div>
 
       <div
@@ -95,6 +106,7 @@ const Home: FunctionComponent<{ token: string }> = ({ token }) => {
           navCollapse={navCollapse}
           setNavCollapse={setNavCollapse}
           setCurComp={setCurComp}
+          update={setUpdateArray}
         />
       </div>
     </UserContext.Provider>

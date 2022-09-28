@@ -1,4 +1,4 @@
-import { FunctionComponent } from "react";
+import { FunctionComponent, useReducer } from "react";
 import KeyboardTabIcon from "@mui/icons-material/KeyboardTab";
 import { IconButton } from "@mui/material";
 import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
@@ -11,7 +11,8 @@ const NavBar: FunctionComponent<{
   navCollapse: boolean;
   setNavCollapse: any;
   setCurComp: any;
-}> = ({ navCollapse, setNavCollapse, setCurComp }) => {
+  update: any[];
+}> = ({ navCollapse, setNavCollapse, setCurComp, update }) => {
   return (
     <>
       {navCollapse ? (
@@ -29,6 +30,9 @@ const NavBar: FunctionComponent<{
               className="sidebar_item"
               onClick={() => {
                 setCurComp(CurrentComponent.Recommendations);
+                update[CurrentComponent.Recommendations](
+                  (value: number) => value + 1
+                );
               }}
             >
               <LibraryMusicIcon
@@ -45,6 +49,9 @@ const NavBar: FunctionComponent<{
               className="sidebar_item_last"
               onClick={() => {
                 setCurComp(CurrentComponent.Playlists);
+                update[CurrentComponent.Playlists](
+                  (value: number) => value + 1
+                );
               }}
             >
               <QueueMusicIcon
@@ -99,6 +106,9 @@ const NavBar: FunctionComponent<{
               className="sidebar_item"
               onClick={() => {
                 setCurComp(CurrentComponent.Recommendations);
+                update[CurrentComponent.Recommendations](
+                  (value: number) => value + 1
+                );
               }}
             >
               <LibraryMusicIcon
@@ -117,6 +127,9 @@ const NavBar: FunctionComponent<{
               className="sidebar_item_last"
               onClick={() => {
                 setCurComp(CurrentComponent.Playlists);
+                update[CurrentComponent.Playlists](
+                  (value: number) => value + 1
+                );
               }}
             >
               <QueueMusicIcon

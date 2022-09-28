@@ -7,7 +7,8 @@ import Playlist from "../Playlist";
 const Main: FunctionComponent<{
   navCollapse: boolean;
   curComp: CurrentComponent;
-}> = ({ navCollapse, curComp }) => {
+  update: number[];
+}> = ({ navCollapse, curComp, update }) => {
   return (
     <>
       <div
@@ -20,15 +21,17 @@ const Main: FunctionComponent<{
         {curComp === CurrentComponent.Recommendations ? (
           <>
             <div className="search_container">
-              <SearchBar />
+              <SearchBar update={update[CurrentComponent.Recommendations]} />
             </div>
 
             <div className="recommendation_container">
-              <Recommendation />
+              <Recommendation
+                update={update[CurrentComponent.Recommendations]}
+              />
             </div>
           </>
         ) : (
-          <Playlist />
+          <Playlist update={update[CurrentComponent.Playlists]} />
         )}
       </div>
     </>

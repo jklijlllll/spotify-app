@@ -16,6 +16,7 @@ import DevicesOtherIcon from "@mui/icons-material/DevicesOther";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import { UserContext } from "../../Pages/Home/Home";
+import { milliToMinandSec } from "../../Functions/milliToMinAndSec";
 
 // TODO: add device control
 // TODO: save player state and volume on reload
@@ -242,19 +243,7 @@ const WebPlayback: FunctionComponent<{
               });
             }}
             valueLabelDisplay="auto"
-            valueLabelFormat={(x) => {
-              let minutes = Math.floor(x / 60000);
-              let seconds = Math.floor((x - minutes * 60000) / 1000);
-
-              let minString = minutes.toString();
-              let secString = seconds.toString();
-
-              if (seconds < 10) secString = "0" + secString;
-
-              let timeStamp = minString + ":" + secString;
-
-              return timeStamp;
-            }}
+            valueLabelFormat={(x) => milliToMinandSec(x)}
           />
         </div>
         <div className="webplayback_info">

@@ -1,7 +1,7 @@
 import axios, { Canceler } from "axios";
 import { useEffect, useState } from "react"
 
-export default function usePlaylistLoad(offset: number, limit: number, headers: any, userId: string, playlistId: string) {
+export default function usePlaylistLoad(offset: number, limit: number, headers: any, userId: string, curPlaylist: any, update: number) {
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<boolean>(false);
@@ -9,15 +9,16 @@ export default function usePlaylistLoad(offset: number, limit: number, headers: 
   const [tracks, setTracks] = useState<any[]>([]);
   const [hasMore, setHasMore] = useState<boolean>(false);
 
-  const url = playlistId ? `https://api.spotify.com/v1/playlists/${playlistId}/tracks`:`https://api.spotify.com/v1/me/playlists` 
+  const url = curPlaylist.id !== "" ? `https://api.spotify.com/v1/playlists/${curPlaylist.id}/tracks`:`https://api.spotify.com/v1/me/playlists` 
 
+  // TODO: add liked song info
   useEffect(() => {
     setPlaylists([])
     setTracks([]);
-  }, [])
+  }, [update])
 
   useEffect(() => {
-    if (playlistId === "") {
+    if (curPlaylist.id === "") {
       setTracks([]);
     } else {
       setPlaylists([]);
@@ -25,7 +26,7 @@ export default function usePlaylistLoad(offset: number, limit: number, headers: 
     setLoading(true);
     setError(false);
     setHasMore(true);
-  },[playlistId])
+  },[curPlaylist])
 
   useEffect(() => {
     setLoading(true);
@@ -38,7 +39,7 @@ export default function usePlaylistLoad(offset: number, limit: number, headers: 
       cancelToken: new axios.CancelToken(c => cancel = c)
     }).then((response) => {
 
-      if (playlistId) {
+      if (curPlaylist.id !== "") {
         console.log(response);
         setTracks(prevTracks => {return [...prevTracks, ...response.data.items]})
       } else {
@@ -60,7 +61,7 @@ export default function usePlaylistLoad(offset: number, limit: number, headers: 
     })
 
     return () => cancel();
-  },[offset, playlistId])
+  },[offset, curPlaylist])
 
   return {loading, error, playlists, tracks, hasMore}
 }

@@ -10,11 +10,12 @@ import Select from "react-select";
 import CheckIcon from "@mui/icons-material/Check";
 import ClearIcon from "@mui/icons-material/Clear";
 import { UserContext } from "../../Pages/Home/Home";
+import { startPlayback } from "../../Functions/startPlayback";
 
 // TODO: add loading indicator for recommended tracks
 // TODO: improve UI
 // TODO: add scrolling and load on type (axios cancel token)
-const Recommendation: FunctionComponent<{}> = () => {
+const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
   const userContext = useContext(UserContext);
   const [artistOptions, setArtistOptions] = useState<
     { label: string; value: string }[]
@@ -136,6 +137,19 @@ const Recommendation: FunctionComponent<{}> = () => {
   const [curValues, setCurValues] = useState(values);
   const [recInfo, setRecInfo] = useState<any[]>([]);
 
+  useEffect(() => {
+    setArtistOptions([]);
+    setArtistInput("");
+    setGenreInput("");
+    setTrackOptions([]);
+    setTrackInput("");
+    setNumSeeds(0);
+    setErrorMsg("");
+    setCurSeeds(seeds);
+    setCurValues(values);
+    setRecInfo([]);
+  }, [update]);
+
   const handleSeedChange = (
     type: string,
     value: { label: string; value: string }[]
@@ -254,7 +268,7 @@ const Recommendation: FunctionComponent<{}> = () => {
       }
       setGenreOptions(result);
     }
-  }, []);
+  }, [update]);
 
   const selectStyle = {
     container: () => ({
@@ -545,19 +559,12 @@ const Recommendation: FunctionComponent<{}> = () => {
             className="track_container"
             onClick={() => {
               if (userContext?.is_active) {
-                axios
-                  .put(
-                    "https://api.spotify.com/v1/me/player/play",
-                    { uris: [track.uri], position_ms: 0 },
-                    {
-                      headers: userContext?.headers,
-                      params: { device_id: userContext.deviceId, play: false },
-                    }
-                  )
-                  .then((response) => {})
-                  .catch((error) => {
-                    console.log(error);
-                  });
+                startPlayback({
+                  device_id: userContext.deviceId,
+                  position_ms: 0,
+                  headers: userContext.headers,
+                  uris: [track.uri],
+                });
               }
             }}
             key={key}

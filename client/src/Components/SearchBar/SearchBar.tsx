@@ -1,12 +1,18 @@
 import { InputAdornment, TextField } from "@mui/material";
-import { FunctionComponent, useContext, useState } from "react";
+import { FunctionComponent, useContext, useState, useEffect } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import axios from "axios";
 import { UserContext } from "../../Pages/Home/Home";
+import { startPlayback } from "../../Functions/startPlayback";
 
-const SearchBar: FunctionComponent<{}> = () => {
+const SearchBar: FunctionComponent<{ update: number }> = ({ update }) => {
   const [searchInput, setSearchInput] = useState<string>("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
+
+  useEffect(() => {
+    setSearchInput("");
+    setSearchResults([]);
+  }, [update]);
 
   const userContext = useContext(UserContext);
 
@@ -42,6 +48,14 @@ const SearchBar: FunctionComponent<{}> = () => {
             backgroundColor: "white",
             zIndex: 2,
           },
+          ".MuiFilledInput-root:hover": {
+            backgroundColor: "white",
+            zIndex: 2,
+          },
+          ".MuiFilledInput-root:active": {
+            backgroundColor: "white",
+            zIndex: 2,
+          },
           ".MuiFormLabel-root": {
             zIndex: 3,
           },
@@ -71,19 +85,12 @@ const SearchBar: FunctionComponent<{}> = () => {
             className="search_result"
             onClick={() => {
               if (userContext?.is_active) {
-                axios
-                  .put(
-                    "https://api.spotify.com/v1/me/player/play",
-                    { uris: [result.uri], position_ms: 0 },
-                    {
-                      headers: userContext?.headers,
-                      params: { device_id: userContext.deviceId },
-                    }
-                  )
-                  .then((response) => {})
-                  .catch((error) => {
-                    console.log(error);
-                  });
+                startPlayback({
+                  device_id: userContext.deviceId,
+                  position_ms: 0,
+                  headers: userContext.headers,
+                  uris: [result.uri],
+                });
               }
             }}
           >

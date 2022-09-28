@@ -2,6 +2,7 @@ import {
   FunctionComponent,
   useCallback,
   useContext,
+  useEffect,
   useRef,
   useState,
 } from "react";
@@ -11,10 +12,15 @@ import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import AddBoxIcon from "@mui/icons-material/AddBox";
 import { Button } from "@mui/material";
 import FilterBar from "../FilterBar";
+import { milliToMinandSec } from "../../Functions/milliToMinAndSec";
+import { startPlayback } from "../../Functions/startPlayback";
 
-const Playlist: FunctionComponent<{}> = () => {
+const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
   const userContext = useContext(UserContext);
-  const [curPlaylist, setCurPlaylist] = useState<string>("");
+  const [curPlaylist, setCurPlaylist] = useState<any>({
+    name: "",
+    id: "",
+  });
   const [filterPlaylists, setFilterPlaylists] = useState<any[]>([]);
   const [offset, setOffset] = useState<number>(0);
   const limit = 20;
@@ -24,8 +30,15 @@ const Playlist: FunctionComponent<{}> = () => {
     limit,
     userContext?.headers,
     userContext?.userProfile.id,
-    curPlaylist
+    curPlaylist,
+    update
   );
+
+  useEffect(() => {
+    setCurPlaylist({ name: "", id: "" });
+    setFilterPlaylists([]);
+    setOffset(0);
+  }, [update]);
 
   const observer = useRef<any>();
   const lastPlaylistElementRef = useCallback(
@@ -46,9 +59,15 @@ const Playlist: FunctionComponent<{}> = () => {
   // TODO: add song preview on playlist hover/select/right click (context menu)
   // TODO: add individual playlist view, management and creation/deletion
 
+  let dateFormat: Intl.DateTimeFormatOptions = {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  };
+
   return (
     <div className="playlist_container">
-      {curPlaylist === "" ? (
+      {curPlaylist.id === "" ? (
         <>
           {playlists.length !== 0 ? (
             <>
@@ -64,7 +83,7 @@ const Playlist: FunctionComponent<{}> = () => {
                         className="playlist_select"
                         ref={lastPlaylistElementRef}
                         key={index}
-                        onClick={() => setCurPlaylist(playlist.id)}
+                        onClick={() => setCurPlaylist(playlist)}
                       >
                         {playlist.images[0] ? (
                           <img
@@ -97,7 +116,7 @@ const Playlist: FunctionComponent<{}> = () => {
                       <div
                         className="playlist_select"
                         key={index}
-                        onClick={() => setCurPlaylist(playlist.id)}
+                        onClick={() => setCurPlaylist(playlist)}
                       >
                         {playlist.images[0] ? (
                           <img
@@ -147,13 +166,121 @@ const Playlist: FunctionComponent<{}> = () => {
           <div>{error && "Error"}</div>
         </>
       ) : (
-        <div>
-          {tracks.map((track, index) => {
-            return (
-              <div key={index}>
-                <h4>{track.track.name}</h4>
+        <div className="playlist_view_container">
+          <div className="playlist_view_header">
+            <img
+              className="playlist_view_cover"
+              src={curPlaylist.images[0].url}
+              alt="playlist image"
+            />
+            <div className="playlist_view_flex_container">
+              <h1 className="playlist_view_title">{curPlaylist.name}</h1>
+              <h4 className="playlist_view_description">
+                {curPlaylist.description}
+              </h4>
+              <div className="playlist_view_info_container">
+                <h4 className="playlist_view_owner">
+                  {curPlaylist.owner.display_name}
+                </h4>
+                <h4 className="playlist_view_count">
+                  {curPlaylist.tracks.total + " songs"}
+                </h4>
               </div>
-            );
+            </div>
+          </div>
+          {tracks.map((track, index) => {
+            if (tracks.length === index + 1) {
+              return (
+                <div
+                  className="playlist_item_container"
+                  ref={lastPlaylistElementRef}
+                  key={index}
+                  onClick={() => {
+                    startPlayback({
+                      device_id: userContext?.deviceId!,
+                      position_ms: 0,
+                      headers: userContext?.headers,
+                      context_uri: curPlaylist.uri,
+                      offset: {
+                        uri: track.track.uri,
+                      },
+                    });
+                  }}
+                >
+                  <h1 className="playlist_item_number">{index + 1}</h1>
+                  <img
+                    className="playlist_item_image"
+                    src={track.track.album.images[0].url}
+                    alt="track_image"
+                  />
+                  <div className="playlist_item_info_container">
+                    <h4 className="playlist_item_name">{track.track.name}</h4>
+                    <h4 className="playlist_item_artists">
+                      {track.track.artists
+                        .map((artist: any) => artist.name)
+                        .join(", ")}
+                    </h4>
+                  </div>
+                  <div className="playlist_item_album">
+                    {track.track.album.name}
+                  </div>
+                  <div className="playlist_item_added_at">
+                    {new Date(track.added_at).toLocaleDateString(
+                      "en-US",
+                      dateFormat
+                    )}
+                  </div>
+                  <div className="playlist_item_duration">
+                    {milliToMinandSec(track.track.duration_ms)}
+                  </div>
+                </div>
+              );
+            } else {
+              return (
+                <div
+                  className="playlist_item_container"
+                  key={index}
+                  onClick={() => {
+                    startPlayback({
+                      device_id: userContext?.deviceId!,
+                      position_ms: 0,
+                      headers: userContext?.headers,
+                      context_uri: curPlaylist.uri,
+                      offset: {
+                        uri: track.track.uri,
+                      },
+                    });
+                  }}
+                >
+                  <h1 className="playlist_item_number">{index + 1}</h1>
+                  <img
+                    className="playlist_item_image"
+                    src={track.track.album.images[0].url}
+                    alt="track_image"
+                  />
+                  <div className="playlist_item_info_container">
+                    <h4 className="playlist_item_name">{track.track.name}</h4>
+                    <h4 className="playlist_item_artists">
+                      {track.track.artists
+                        .map((artist: any) => artist.name)
+                        .join(", ")}
+                    </h4>
+                  </div>
+                  <div className="playlist_item_album">
+                    {track.track.album.name}
+                  </div>
+                  <div className="playlist_item_added_at">
+                    {new Date(track.added_at).toLocaleDateString(
+                      "en-US",
+                      dateFormat
+                    )}
+                  </div>
+                  <div className="playlist_item_duration">
+                    {milliToMinandSec(track.track.duration_ms)}
+                  </div>
+                </div>
+              );
+            }
           })}
         </div>
       )}
