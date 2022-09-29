@@ -4,6 +4,7 @@ import SearchBar from "../SearchBar";
 import { CurrentComponent } from "../../Pages/Home/Home";
 import Playlist from "../Playlist";
 
+// TODO: overlay options
 const Main: FunctionComponent<{
   navCollapse: boolean;
   curComp: CurrentComponent;
