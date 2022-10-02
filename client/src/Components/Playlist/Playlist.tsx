@@ -10,23 +10,12 @@ import usePlaylistLoad from "../../Hooks/usePlaylistLoad";
 import { UserContext } from "../../Pages/Home/Home";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import AddBoxIcon from "@mui/icons-material/AddBox";
-import {
-  Button,
-  Fade,
-  IconButton,
-  Modal,
-  TextField,
-  ToggleButton,
-  ToggleButtonGroup,
-} from "@mui/material";
+import { Button } from "@mui/material";
 import FilterBar from "../FilterBar";
 import { milliToMinandSec } from "../../Functions/milliToMinAndSec";
 import { startPlayback } from "../../Functions/startPlayback";
-import PublicIcon from "@mui/icons-material/Public";
-import PublicOffIcon from "@mui/icons-material/PublicOff";
-import PersonIcon from "@mui/icons-material/Person";
-import GroupsIcon from "@mui/icons-material/Groups";
-import ClearIcon from "@mui/icons-material/Clear";
+
+import PlaylistEdit from "../PlaylistEdit";
 
 const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
   const userContext = useContext(UserContext);
@@ -70,7 +59,7 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
 
   // TODO: improve UI
   // TODO: add song preview on playlist hover/select/right click (context menu)
-  // TODO: add individual playlist view, management and creation/deletion
+  // TODO: add individual management and creation/deletion
 
   let dateFormat: Intl.DateTimeFormatOptions = {
     year: "numeric",
@@ -79,6 +68,10 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
   };
 
   const [openEdit, setOpenEdit] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (openEdit === true) return;
+  }, [openEdit]);
 
   return (
     <div className="playlist_container">
@@ -182,104 +175,18 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
         </>
       ) : (
         <>
-          <Modal
+          <PlaylistEdit
             open={openEdit}
-            onClose={() => setOpenEdit(false)}
-            sx={{ display: "flex" }}
-            closeAfterTransition
-          >
-            <Fade in={openEdit}>
-              <div className="playlist_edit_container">
-                <div className="playlist_edit_header">
-                  <h1 className="playlist_edit_title">Edit playlist details</h1>
-                  <IconButton>
-                    <ClearIcon sx={{ color: "white" }} />
-                  </IconButton>
-                </div>
-                <div className="playlist_edit_flex">
-                  <div>
-                    <input
-                      hidden
-                      id="image_upload"
-                      accept="image/*"
-                      multiple
-                      type="file"
-                    />
-                    {/* Add default image */}
-                    <label htmlFor="image_upload">
-                      {curPlaylist.images[0] ? (
-                        <img
-                          className="playlist_edit_cover"
-                          src={curPlaylist.images[0].url}
-                          alt="playlist image"
-                        />
-                      ) : (
-                        <></>
-                      )}
-                    </label>
-                  </div>
-
-                  <div className="playlist_edit_info_container">
-                    <TextField
-                      label="Name"
-                      variant="filled"
-                      sx={{
-                        color: "white",
-                        backgroundColor: "gray",
-                        marginLeft: "10px",
-                        marginBottom: "10px",
-                      }}
-                    />
-                    <TextField
-                      label="Description"
-                      variant="filled"
-                      sx={{
-                        color: "white",
-                        backgroundColor: "gray",
-                        marginLeft: "10px",
-                      }}
-                    />
-                  </div>
-                </div>
-                <div className="playlist_edit_toggles">
-                  <ToggleButtonGroup sx={{ paddingRight: "5px" }}>
-                    <ToggleButton
-                      value="private"
-                      sx={{ backgroundColor: "white" }}
-                    >
-                      <PublicOffIcon />
-                    </ToggleButton>
-                    <ToggleButton
-                      value="public"
-                      sx={{ backgroundColor: "white" }}
-                    >
-                      <PublicIcon />
-                    </ToggleButton>
-                  </ToggleButtonGroup>
-                  <ToggleButtonGroup sx={{ paddingLeft: "5px" }}>
-                    <ToggleButton
-                      value="non-collaborative"
-                      sx={{ backgroundColor: "white" }}
-                    >
-                      <PersonIcon />
-                    </ToggleButton>
-                    <ToggleButton
-                      value="collaborative"
-                      sx={{ backgroundColor: "white" }}
-                    >
-                      <GroupsIcon />
-                    </ToggleButton>
-                  </ToggleButtonGroup>
-                </div>
-                <Button sx={{ marginTop: "10px", backgroundColor: "white" }}>
-                  Save
-                </Button>
-              </div>
-            </Fade>
-          </Modal>
+            setOpen={setOpenEdit}
+            curPlaylist={curPlaylist}
+            setCurPlaylist={setCurPlaylist}
+            headers={userContext?.headers}
+          />
           <div className="playlist_view_container">
-            <div className="playlist_view_header">
-              {/* Add default image */}
+            <div
+              className="playlist_view_header"
+              onClick={() => setOpenEdit(true)}
+            >
               {curPlaylist.images[0] ? (
                 <img
                   className="playlist_view_cover"
@@ -287,14 +194,19 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
                   alt="playlist image"
                 />
               ) : (
-                <></>
+                <div className="playlist_empty_cover">
+                  <MusicNoteIcon
+                    sx={{
+                      color: "gray",
+                      width: "64px",
+                      height: "64px",
+                    }}
+                  />
+                </div>
               )}
 
               <div className="playlist_view_flex_container">
-                <div
-                  className="playlist_view_edit_container"
-                  onClick={() => setOpenEdit(true)}
-                >
+                <div className="playlist_view_edit_container">
                   <h1 className="playlist_view_title">{curPlaylist.name}</h1>
                   <h4 className="playlist_view_description">
                     {curPlaylist.description}

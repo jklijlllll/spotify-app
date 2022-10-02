@@ -15,6 +15,7 @@ import { startPlayback } from "../../Functions/startPlayback";
 // TODO: add loading indicator for recommended tracks
 // TODO: improve UI
 // TODO: add scrolling and load on type (axios cancel token)
+// TODO: add recommendations to playlist
 const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
   const userContext = useContext(UserContext);
   const [artistOptions, setArtistOptions] = useState<
