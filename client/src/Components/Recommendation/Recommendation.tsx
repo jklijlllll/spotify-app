@@ -11,6 +11,7 @@ import CheckIcon from "@mui/icons-material/Check";
 import ClearIcon from "@mui/icons-material/Clear";
 import { UserContext } from "../../Pages/Home/Home";
 import { startPlayback } from "../../Functions/startPlayback";
+import PlaylistAdd from "../PlaylistAdd";
 
 // TODO: add loading indicator for recommended tracks
 // TODO: improve UI
@@ -137,6 +138,8 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
 
   const [curValues, setCurValues] = useState(values);
   const [recInfo, setRecInfo] = useState<any[]>([]);
+
+  const [addOpen, setAddOpen] = useState<boolean>(false);
 
   useEffect(() => {
     setArtistOptions([]);
@@ -580,6 +583,21 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
           </div>
         ))}
       </div>
+
+      {recInfo.length === 0 ? (
+        <></>
+      ) : (
+        <>
+          <PlaylistAdd open={addOpen} setOpen={setAddOpen} tracks={recInfo} />
+          <Button
+            sx={{ marginTop: "10px", marginBottom: "100px" }}
+            variant="contained"
+            onClick={() => setAddOpen(true)}
+          >
+            Create Playlist
+          </Button>
+        </>
+      )}
     </>
   );
 };

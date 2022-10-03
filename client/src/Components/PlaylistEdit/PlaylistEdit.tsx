@@ -21,7 +21,9 @@ import EditIcon from "@mui/icons-material/Edit";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import ErrorIcon from "@mui/icons-material/Error";
 import axios from "axios";
-import { request } from "https";
+import PlaylistName from "../Inputs/PlaylistName";
+import PlaylistDesc from "../Inputs/PlaylistDesc";
+import PlaylistImage from "../Inputs/PlaylistImage";
 
 const PlaylistEdit: FunctionComponent<{
   open: boolean;
@@ -30,21 +32,10 @@ const PlaylistEdit: FunctionComponent<{
   setCurPlaylist: any;
   headers: any;
 }> = ({ open, setOpen, curPlaylist, setCurPlaylist, headers }) => {
-  const [isHovered, setIsHovered] = useState<boolean>(false);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const menuOpen = Boolean(anchorEl);
-  const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
-  const handleClose = () => {
-    setAnchorEl(null);
-  };
-
   const [imageURL, setImageURL] = useState<string>(
     curPlaylist.images[0] ? curPlaylist.images[0].url : ""
   );
   const [image64, setImage64] = useState<any>(null);
-  const fileInput = useRef<any>(null);
 
   const [name, setName] = useState<string>(curPlaylist.name || "");
   const [desc, setDesc] = useState<string>(curPlaylist.description || "");
@@ -187,117 +178,22 @@ const PlaylistEdit: FunctionComponent<{
                 </div>
               )}
               <div className="playlist_edit_flex">
-                <div
-                  onMouseEnter={() => setIsHovered(true)}
-                  onMouseLeave={() => setIsHovered(false)}
-                  className="playlist_edit_cover"
-                >
-                  {/* TODO: limit file size */}
-                  <input
-                    hidden
-                    id="image_upload"
-                    accept="image/*"
-                    type="file"
-                    ref={fileInput}
-                    onChange={(e) => {
-                      if (e.target.files === null) return;
-                      setImageURL(URL.createObjectURL(e.target.files[0]));
-                      let reader = new FileReader();
-                      reader.readAsDataURL(e.target.files[0]);
-                      reader.onload = function () {
-                        if (typeof reader.result === "string") {
-                          setImage64(reader.result.split(",")[1]);
-                        }
-                      };
-                    }}
-                  />
-
-                  <label htmlFor="image_upload">
-                    {curPlaylist.images[0] || imageURL !== "" ? (
-                      <img
-                        className="playlist_edit_cover"
-                        src={imageURL}
-                        alt="playlist image"
-                        style={{ opacity: isHovered ? 0.2 : 1.0 }}
-                      />
-                    ) : (
-                      <div
-                        className="playlist_edit_empty_cover"
-                        style={{ opacity: isHovered ? 0.2 : 1.0 }}
-                      >
-                        <MusicNoteIcon
-                          sx={{
-                            color: "gray",
-                            width: "32px",
-                            height: "32px",
-                          }}
-                        />
-                      </div>
-                    )}
-                  </label>
-                  {isHovered ? (
-                    <div className="playlist_edit_cover_overlay">
-                      <IconButton
-                        sx={{
-                          color: "white",
-                          marginLeft: "80px",
-                          bottom: "8px",
-                          marginBottom: "-17.5px",
-                        }}
-                        size="small"
-                        id="edit_image_button"
-                        aria-controls={menuOpen ? "image_menu" : undefined}
-                        aria-haspopup="true"
-                        aria-expanded={menuOpen ? "true" : undefined}
-                        onClick={handleClick}
-                      >
-                        <MoreHorizIcon />
-                      </IconButton>
-
-                      <Menu
-                        id="image_menu"
-                        anchorEl={anchorEl}
-                        open={menuOpen}
-                        onClose={handleClose}
-                        MenuListProps={{
-                          "aria-labelledby": "edit_image_button",
-                        }}
-                        sx={{ marginTop: "-16px" }}
-                      >
-                        <MenuItem
-                          onClick={() => {
-                            handleClose();
-                            if (fileInput.current) fileInput.current.click();
-                          }}
-                        >
-                          Change Photo
-                        </MenuItem>
-                        <MenuItem
-                          onClick={() => {
-                            handleClose();
-                            removeImage();
-                          }}
-                        >
-                          Remove Photo
-                        </MenuItem>
-                      </Menu>
-
-                      <EditIcon
-                        sx={{ marginLeft: "46.5px" }}
-                        fontSize="large"
-                      />
-                    </div>
-                  ) : (
-                    <></>
-                  )}
-                </div>
+                <PlaylistImage
+                  setImageURL={setImageURL}
+                  setImage64={setImage64}
+                  curPlaylist={curPlaylist}
+                  imageURL={imageURL}
+                  removeImage={removeImage}
+                  width={128}
+                  height={128}
+                />
 
                 <div className="playlist_edit_info_container">
-                  <TextField
-                    label="Name"
-                    variant="filled"
-                    required
-                    sx={{
+                  <PlaylistName
+                    name={name}
+                    setName={setName}
+                    setError={setError}
+                    style={{
                       color: "white",
                       backgroundColor: "gray",
                       marginLeft: "10px",
@@ -307,20 +203,11 @@ const PlaylistEdit: FunctionComponent<{
                         color: "white",
                       },
                     }}
-                    inputProps={{ maxLength: 100 }}
-                    value={name}
-                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                      if (event.target.value === "")
-                        setError("Playlist name is required");
-                      else setError("");
-                      setName(event.target.value);
-                    }}
                   />
-                  <TextField
-                    label="Description"
-                    multiline
-                    variant="filled"
-                    sx={{
+                  <PlaylistDesc
+                    desc={desc}
+                    setDesc={setDesc}
+                    styles={{
                       color: "white",
                       backgroundColor: "gray",
                       marginLeft: "10px",
@@ -328,12 +215,6 @@ const PlaylistEdit: FunctionComponent<{
                       ".MuiFormLabel-root": {
                         color: "white",
                       },
-                    }}
-                    minRows={3}
-                    inputProps={{ maxLength: 300, style: { color: "white" } }}
-                    value={desc}
-                    onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
-                      setDesc(event.target.value);
                     }}
                   />
                 </div>
