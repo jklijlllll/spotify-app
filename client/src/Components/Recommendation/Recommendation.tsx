@@ -12,6 +12,7 @@ import ClearIcon from "@mui/icons-material/Clear";
 import { UserContext } from "../../Pages/Home/Home";
 import { startPlayback } from "../../Functions/startPlayback";
 import PlaylistAdd from "../PlaylistAdd";
+import useHistory from "../../Hooks/useHistory";
 
 // TODO: add loading indicator for recommended tracks
 // TODO: improve UI
@@ -138,6 +139,8 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
 
   const [curValues, setCurValues] = useState(values);
   const [recInfo, setRecInfo] = useState<any[]>([]);
+
+  useHistory({ recommended_tracks: recInfo });
 
   const [addOpen, setAddOpen] = useState<boolean>(false);
 
@@ -588,7 +591,14 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
         <></>
       ) : (
         <>
-          <PlaylistAdd open={addOpen} setOpen={setAddOpen} tracks={recInfo} />
+          <PlaylistAdd
+            open={addOpen}
+            setOpen={setAddOpen}
+            userId={userContext?.userProfile.id}
+            headers={userContext?.headers}
+            useHistory={false}
+            tracks={recInfo}
+          />
           <Button
             sx={{ marginTop: "10px", marginBottom: "100px" }}
             variant="contained"

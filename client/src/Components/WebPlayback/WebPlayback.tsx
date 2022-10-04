@@ -17,6 +17,7 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import { UserContext } from "../../Pages/Home/Home";
 import { milliToMinandSec } from "../../Functions/milliToMinAndSec";
+import useHistory from "../../Hooks/useHistory";
 
 // TODO: add device control
 // TODO: save player state and volume on reload
@@ -26,9 +27,7 @@ import { milliToMinandSec } from "../../Functions/milliToMinAndSec";
 const WebPlayback: FunctionComponent<{
   current_track: any;
   setTrack: any;
-
   setActive: any;
-
   setDeviceId: any;
 }> = ({ current_track, setTrack, setActive, setDeviceId }) => {
   const [player, setPlayer] = useState<any>(undefined);
@@ -42,6 +41,8 @@ const WebPlayback: FunctionComponent<{
   const [is_liked, setIsLiked] = useState<boolean>(false);
 
   const userContext = useContext(UserContext);
+
+  useHistory({ current_track: current_track });
 
   const getPosition = () => {
     if (is_paused) {

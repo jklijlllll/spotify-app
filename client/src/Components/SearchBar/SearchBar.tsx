@@ -42,7 +42,7 @@ const SearchBar: FunctionComponent<{ update: number }> = ({ update }) => {
     <>
       <TextField
         sx={{
-          width: "30%",
+          width: "600px",
           height: "60px",
           ".MuiFilledInput-root": {
             backgroundColor: "white",

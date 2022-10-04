@@ -7,22 +7,24 @@ export default function useAuth(code: string) {
     const [expiresAt, setExpiresAt] = useState<number>();
     
     useEffect(() => {
-        const accessToken = JSON.parse(localStorage.getItem("accessToken")!);
-        if (accessToken) {
-            setAccessToken(accessToken);
+
+        const localExpiresAt = JSON.parse(localStorage.getItem("expiresAt")!);
+        if (localExpiresAt) {
+            if(Date.now() >= localExpiresAt) return;
+            setExpiresAt(localExpiresAt);
         }
 
-        const refreshToken = JSON.parse(localStorage.getItem("refreshToken")!);
-        if (refreshToken) {
-            setRefreshToken(refreshToken);
+        const localAccessToken = JSON.parse(localStorage.getItem("accessToken")!);
+        if (localAccessToken) {
+            setAccessToken(localAccessToken);
         }
 
-        const expiresAt = JSON.parse(localStorage.getItem("expiresAt")!);
-        if (expiresAt) {
-            setExpiresAt(expiresAt);
+        const localRefreshToken = JSON.parse(localStorage.getItem("refreshToken")!);
+        if (localRefreshToken) {
+            setRefreshToken(localRefreshToken);
         }
 
-    }, [accessToken, refreshToken, expiresAt])
+    }, [])
 
 
     useEffect(() => {

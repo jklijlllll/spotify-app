@@ -150,6 +150,7 @@ const PlaylistEdit: FunctionComponent<{
             <div className="playlist_edit_container">
               <CircularProgress
                 variant="indeterminate"
+                thickness={2}
                 sx={{
                   color: "white",
                 }}
