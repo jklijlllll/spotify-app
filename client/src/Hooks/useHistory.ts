@@ -20,6 +20,8 @@ export default function useHistory({current_track, recommended_tracks} : History
 
     },[current_track])
 
+
+    // TODO: push track to front if already in history
     useEffect(() => {
 
         if (!localStorage.getItem("history")) 

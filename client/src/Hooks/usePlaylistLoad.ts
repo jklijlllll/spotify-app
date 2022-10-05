@@ -1,7 +1,7 @@
 import axios, { Canceler } from "axios";
 import { useEffect, useState } from "react"
 
-export default function usePlaylistLoad(offset: number, limit: number, headers: any, userId: string, curPlaylist: any, update: number) {
+export default function usePlaylistLoad(offset: number, limit: number, headers: any, userId: string, curPlaylist: any, update: number, snapshot_id?: string) {
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<boolean>(false);
@@ -12,21 +12,22 @@ export default function usePlaylistLoad(offset: number, limit: number, headers: 
   const url = curPlaylist.id !== "" ? `https://api.spotify.com/v1/playlists/${curPlaylist.id}/tracks`:`https://api.spotify.com/v1/me/playlists` 
 
   // TODO: add liked song info
+  // TODO: update tracks.tracks => tracks (Playlist.tsx)
   useEffect(() => {
     setPlaylists([])
     setTracks([]);
   }, [update])
 
   useEffect(() => {
-    if (curPlaylist.id === "") {
-      setTracks([]);
-    } else {
-      setPlaylists([]);
-    }
+    if (snapshot_id && snapshot_id === "") return; 
+    
+    setTracks([]);
+    setPlaylists([]);
+    
     setLoading(true);
     setError(false);
     setHasMore(true);
-  },[curPlaylist])
+  },[curPlaylist, snapshot_id])
 
   useEffect(() => {
     setLoading(true);

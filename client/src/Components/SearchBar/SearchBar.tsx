@@ -5,6 +5,7 @@ import axios from "axios";
 import { UserContext } from "../../Pages/Home/Home";
 import { startPlayback } from "../../Functions/startPlayback";
 
+// TODO: refactor for both playlist and recommendation
 const SearchBar: FunctionComponent<{ update: number }> = ({ update }) => {
   const [searchInput, setSearchInput] = useState<string>("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -53,6 +54,10 @@ const SearchBar: FunctionComponent<{ update: number }> = ({ update }) => {
             zIndex: 2,
           },
           ".MuiFilledInput-root:active": {
+            backgroundColor: "white",
+            zIndex: 2,
+          },
+          ".MuiFilledInput-root:focus": {
             backgroundColor: "white",
             zIndex: 2,
           },

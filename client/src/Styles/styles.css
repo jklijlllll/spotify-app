@@ -539,7 +539,6 @@ a:active { text-decoration: none; }
 
 .playlist_view_header {
   display: flex;
-  min-width: calc(100%- 32px);
   padding-left: 32px;
   align-items: center;
   text-align: left;
@@ -602,16 +601,21 @@ a:active { text-decoration: none; }
   margin: 0;
 }
 
-.playlist_item_container {
+.playlist_item_flex {
   display: flex;
   width: 100%;
-  height: 64px;
   align-items: center;
 }
-
-.playlist_item_container:hover {
+.playlist_item_flex:hover {
   background-color: lightgrey;
   border-radius: 5px;
+}
+
+.playlist_item_container {
+  display: flex;
+  width: calc(100% - 96px);
+  height: 64px;
+  align-items: center;
 }
 
 .playlist_item_number {
@@ -673,6 +677,63 @@ a:active { text-decoration: none; }
   text-align: left;
 }
 
+.playlist_view_add_container {
+  display:flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.playlist_view_add_title {
+  font-size: 32px;
+  min-width: 100%;
+}
+
+.playlist_view_add_tracks {
+  display: flex;
+  flex-direction: column;
+  justify-content: left;
+  min-width: 100%;
+  gap: 5px;
+}
+
+.playlist_view_add_track {
+  display: flex;
+  padding-left: 32px;
+  align-items: center;
+}
+
+.playlist_view_add_track:hover {
+  background-color: lightgrey;
+  border-radius: 5px;
+}
+
+.playlist_view_add_cover {
+  height: 64px;
+  width: 64px;
+}
+
+.playlist_view_add_track_info_container {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  padding-left: 10px;
+  width: calc(100% - 206px);
+}
+
+.playlist_view_add_track_info_title {
+  font-size: 24px;
+  text-overflow:ellipsis;
+  overflow:hidden;
+  white-space:nowrap;
+}
+
+.playlist_view_add_track_info_name {
+  font-size: 16px;
+  text-overflow:ellipsis;
+  overflow:hidden;
+  white-space:nowrap;
+}
 /* Filter Bar */
 .playlist_filter_bar {
   width: 100%;

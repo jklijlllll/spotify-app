@@ -174,7 +174,7 @@ const WebPlayback: FunctionComponent<{
     axios
       .put(
         "https://api.spotify.com/v1/me/tracks",
-        { ids: [current_track.uri.replace("spotify:track:", "")] },
+        { ids: [current_track.id] },
         { headers: userContext?.headers }
       )
       .then((response) => setIsLiked(true))
@@ -184,7 +184,7 @@ const WebPlayback: FunctionComponent<{
   const unLikeTrack = () => {
     axios
       .delete("https://api.spotify.com/v1/me/tracks", {
-        params: { ids: current_track.uri.replace("spotify:track:", "") },
+        params: { ids: current_track.id },
         headers: userContext?.headers,
       })
       .then((response) => setIsLiked(false))

@@ -10,15 +10,12 @@ import {
   MenuItem,
   CircularProgress,
 } from "@mui/material";
-import { FunctionComponent, useEffect, useRef, useState } from "react";
+import { FunctionComponent, useEffect, useState } from "react";
 import PublicIcon from "@mui/icons-material/Public";
 import PublicOffIcon from "@mui/icons-material/PublicOff";
 import PersonIcon from "@mui/icons-material/Person";
 import GroupsIcon from "@mui/icons-material/Groups";
 import ClearIcon from "@mui/icons-material/Clear";
-import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
-import EditIcon from "@mui/icons-material/Edit";
-import MusicNoteIcon from "@mui/icons-material/MusicNote";
 import ErrorIcon from "@mui/icons-material/Error";
 import axios from "axios";
 import PlaylistName from "../Inputs/PlaylistName";
