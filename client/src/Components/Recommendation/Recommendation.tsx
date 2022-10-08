@@ -5,6 +5,7 @@ import React, {
   useContext,
   useEffect,
   useState,
+  useMemo,
 } from "react";
 import Select from "react-select";
 import CheckIcon from "@mui/icons-material/Check";
@@ -13,6 +14,8 @@ import { UserContext } from "../../Pages/Home/Home";
 import { startPlayback } from "../../Functions/startPlayback";
 import PlaylistAdd from "../PlaylistAdd";
 import useHistory from "../../Hooks/useHistory";
+import SearchBar from "../SearchBar";
+import { ArtistInterface, TrackInterface } from "../../Types/SpotifyApi";
 
 // TODO: add loading indicator for recommended tracks
 // TODO: improve UI
@@ -39,24 +42,28 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
   const [errorMsg, setErrorMsg] = useState<string>("");
   const maxSeeds = 5;
 
-  const seeds: {
+  type seedType = {
     [key: string]: {
       value: { label: string; value: string }[];
     };
-  } = {
-    artist: {
-      value: [],
-    },
-    genre: {
-      value: [],
-    },
-    track: {
-      value: [],
-    },
   };
+  const seeds: seedType = useMemo(() => {
+    return {
+      artist: {
+        value: [],
+      },
+      genre: {
+        value: [],
+      },
+      track: {
+        value: [],
+      },
+    };
+  }, []);
 
   const [curSeeds, setCurSeeds] = useState(seeds);
-  const values: {
+
+  type valueType = {
     [key: string]: {
       value: number[];
       enabled: boolean;
@@ -64,81 +71,85 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
       max: number;
       step: number;
     };
-  } = {
-    Acousticness: {
-      value: [0, 1],
-      enabled: false,
-      min: 0,
-      max: 1,
-      step: 0.01,
-    },
-    Danceability: {
-      value: [0, 1],
-      enabled: false,
-      min: 0,
-      max: 1,
-      step: 0.01,
-    },
-    Energy: {
-      value: [0, 1],
-      enabled: false,
-      min: 0,
-      max: 1,
-      step: 0.01,
-    },
-    Instrumentalness: {
-      value: [0, 1],
-      enabled: false,
-      min: 0,
-      max: 1,
-      step: 0.01,
-    },
-    Liveness: {
-      value: [0, 1],
-      enabled: false,
-      min: 0,
-      max: 1,
-      step: 0.01,
-    },
-    Loudness: {
-      value: [-60, 0],
-      enabled: false,
-      min: -60,
-      max: 0,
-      step: 1,
-    },
-    Popularity: {
-      value: [0, 100],
-      enabled: false,
-      min: 0,
-      max: 100,
-      step: 1,
-    },
-    Speechiness: {
-      value: [0, 1],
-      enabled: false,
-      min: 0,
-      max: 1,
-      step: 0.01,
-    },
-    Tempo: {
-      value: [0, 200],
-      enabled: false,
-      min: 0,
-      max: 200,
-      step: 1,
-    },
-    Valence: {
-      value: [0, 1],
-      enabled: false,
-      min: 0,
-      max: 1,
-      step: 0.01,
-    },
   };
 
+  const values: valueType = useMemo(() => {
+    return {
+      Acousticness: {
+        value: [0, 1],
+        enabled: false,
+        min: 0,
+        max: 1,
+        step: 0.01,
+      },
+      Danceability: {
+        value: [0, 1],
+        enabled: false,
+        min: 0,
+        max: 1,
+        step: 0.01,
+      },
+      Energy: {
+        value: [0, 1],
+        enabled: false,
+        min: 0,
+        max: 1,
+        step: 0.01,
+      },
+      Instrumentalness: {
+        value: [0, 1],
+        enabled: false,
+        min: 0,
+        max: 1,
+        step: 0.01,
+      },
+      Liveness: {
+        value: [0, 1],
+        enabled: false,
+        min: 0,
+        max: 1,
+        step: 0.01,
+      },
+      Loudness: {
+        value: [-60, 0],
+        enabled: false,
+        min: -60,
+        max: 0,
+        step: 1,
+      },
+      Popularity: {
+        value: [0, 100],
+        enabled: false,
+        min: 0,
+        max: 100,
+        step: 1,
+      },
+      Speechiness: {
+        value: [0, 1],
+        enabled: false,
+        min: 0,
+        max: 1,
+        step: 0.01,
+      },
+      Tempo: {
+        value: [0, 200],
+        enabled: false,
+        min: 0,
+        max: 200,
+        step: 1,
+      },
+      Valence: {
+        value: [0, 1],
+        enabled: false,
+        min: 0,
+        max: 1,
+        step: 0.01,
+      },
+    };
+  }, []);
+
   const [curValues, setCurValues] = useState(values);
-  const [recInfo, setRecInfo] = useState<any[]>([]);
+  const [recInfo, setRecInfo] = useState<TrackInterface[]>([]);
 
   useHistory({ recommended_tracks: recInfo });
 
@@ -155,7 +166,7 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
     setCurSeeds(seeds);
     setCurValues(values);
     setRecInfo([]);
-  }, [update]);
+  }, [update, seeds, values]);
 
   const handleSeedChange = (
     type: string,
@@ -222,7 +233,7 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
                 let artist_names = " ";
                 if (result.artists.length > 0) {
                   artist_names = result.artists
-                    .map((artist: any) => artist.name)
+                    .map((artist: ArtistInterface) => artist.name)
                     .join(", ");
                 }
                 searchResults.push({
@@ -275,7 +286,7 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
       }
       setGenreOptions(result);
     }
-  }, [update]);
+  }, [update, userContext?.headers]);
 
   const selectStyle = {
     container: () => ({
@@ -293,12 +304,12 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
     menu: () => ({
       fontSize: "20px",
     }),
-    menuList: (provided: any, state: any) => ({
+    menuList: (provided: any) => ({
       ...provided,
       maxHeight: "200px",
       border: "1px solid black",
     }),
-    option: (provided: any, state: any) => ({
+    option: (provided: any) => ({
       ...provided,
     }),
   };
@@ -371,243 +382,290 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
       .then((response) => setRecInfo(response.data.tracks));
   };
 
+  const [searchInput, setSearchInput] = useState<string>("");
+  const [searchResults, setSearchResults] = useState<TrackInterface[]>([]);
+
   return (
     <>
-      <h1 className="recommendation_title">Recommendations</h1>
-      {errorMsg === "" ? (
-        <></>
-      ) : (
-        <h4 className="recommendation_error_text">{errorMsg}</h4>
-      )}
-      <div className="seed_select_container">
-        <Select
-          placeholder={"Select Artists"}
-          isMulti
-          styles={selectStyle}
-          value={curSeeds["artist"].value}
-          onChange={(newValue: any) => {
-            if (
-              numSeeds - curSeeds["artist"].value.length + newValue.length <=
-              maxSeeds
-            ) {
-              setErrorMsg("");
-              handleSeedChange("artist", newValue);
-            } else {
-              setErrorMsg(
-                "Only five artists, genres and tracks combined may be selected"
-              );
-            }
-          }}
-          options={artistOptions}
-          inputValue={artistInput}
-          onInputChange={(newValue) => {
-            setArtistInput(newValue);
-          }}
-          onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
-            if (event.key === "Enter") {
-              sendSearch("artist");
-              event.preventDefault();
-            }
-          }}
+      <div className="search_container">
+        <SearchBar
+          searchInput={searchInput}
+          setSearchInput={setSearchInput}
+          setSearchResults={setSearchResults}
+          headers={userContext?.headers}
+          height={"60px"}
+          width={"600px"}
+          limit={5}
         />
-        <Select
-          placeholder={"Select Genres"}
-          isMulti
-          styles={selectStyle}
-          value={curSeeds["genre"].value}
-          onChange={(newValue: any) => {
-            if (
-              numSeeds - curSeeds["genre"].value.length + newValue.length <=
-              maxSeeds
-            ) {
-              setErrorMsg("");
-              handleSeedChange("genre", newValue);
-            } else {
-              setErrorMsg(
-                "Only five artists, genres and tracks combined may be selected"
-              );
-            }
-          }}
-          options={genreOptions}
-          inputValue={genreInput}
-          onInputChange={(newValue) => {
-            setGenreInput(newValue);
-          }}
-          onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
-            if (event.key === "Enter") {
-              sendSearch("genre");
-              event.preventDefault();
-            }
-          }}
-        />
-        <Select
-          placeholder={"Select Tracks"}
-          isMulti
-          styles={selectStyle}
-          value={curSeeds["track"].value}
-          onChange={(newValue: any) => {
-            if (
-              numSeeds - curSeeds["track"].value.length + newValue.length <=
-              maxSeeds
-            ) {
-              setErrorMsg("");
-              handleSeedChange("track", newValue);
-            } else {
-              setErrorMsg(
-                "Only five artists, genres and tracks combined may be selected"
-              );
-            }
-          }}
-          options={trackOptions}
-          inputValue={trackInput}
-          onInputChange={(newValue) => {
-            setTrackInput(newValue);
-          }}
-          onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
-            if (event.key === "Enter") {
-              sendSearch("track");
-              event.preventDefault();
-            }
-          }}
-        />
-      </div>
-      <div className="top_slider_container">
-        {Object.keys(values)
-          .slice(0, Math.ceil(Object.keys(values).length) / 2)
-          .map((attribute, key) => (
-            <div className="slider_container" key={key}>
-              <h4 className="slider_title">{attribute}</h4>
-              <Slider
-                sx={{
-                  '& input[type="range"]': {
-                    WebkitAppearance: "slider-vertical",
-                  },
-                  height: "150px",
-                }}
-                orientation="vertical"
-                min={curValues[attribute].min}
-                max={curValues[attribute].max}
-                step={curValues[attribute].step}
-                value={curValues[attribute].value}
-                onChange={(event, newValue) => {
-                  handleChange(attribute, newValue);
-                }}
-                valueLabelDisplay="auto"
-                disabled={!curValues[attribute].enabled}
-              />
-              <ToggleButton
-                value="check"
-                selected={curValues[attribute].enabled}
-                onChange={() => toggleValue(attribute)}
-                sx={{
-                  height: "30px",
-                  width: "30px",
-                }}
-              >
-                {curValues[attribute].enabled ? <CheckIcon /> : <ClearIcon />}
-              </ToggleButton>
-            </div>
-          ))}
-      </div>
-
-      <div className="bottom_slider_container">
-        {Object.keys(values)
-          .slice(
-            Math.ceil(Object.keys(values).length) / 2,
-            Object.keys(values).length
-          )
-          .map((attribute, key) => (
-            <div className="slider_container" key={key}>
-              <h4 className="slider_title">{attribute}</h4>
-              <Slider
-                sx={{
-                  '& input[type="range"]': {
-                    WebkitAppearance: "slider-vertical",
-                  },
-                  height: "150px",
-                }}
-                orientation="vertical"
-                min={curValues[attribute].min}
-                max={curValues[attribute].max}
-                step={curValues[attribute].step}
-                value={curValues[attribute].value}
-                onChange={(event, newValue) =>
-                  handleChange(attribute, newValue)
+        <div className="search_results_container">
+          {searchResults.map((result, key) => (
+            <div
+              key={key}
+              className="search_result"
+              onClick={() => {
+                if (userContext?.is_active) {
+                  startPlayback({
+                    device_id: userContext.deviceId,
+                    position_ms: 0,
+                    headers: userContext.headers,
+                    uris: [result.uri],
+                  });
                 }
-                valueLabelDisplay="auto"
-                disabled={!curValues[attribute].enabled}
+              }}
+            >
+              <img
+                className="search_result_image"
+                src={result.album.images[2].url}
+                alt="track cover"
               />
-              <ToggleButton
-                value="check"
-                selected={curValues[attribute].enabled}
-                onChange={() => toggleValue(attribute)}
-                sx={{
-                  height: "30px",
-                  width: "30px",
-                }}
-              >
-                {curValues[attribute].enabled ? <CheckIcon /> : <ClearIcon />}
-              </ToggleButton>
+              <h4 className="search_result_text">{result.name}</h4>
             </div>
           ))}
+        </div>
       </div>
-
-      <Button
-        sx={{ marginBottom: recInfo.length === 0 ? "0px" : "20px" }}
-        variant="contained"
-        onClick={() => handleSubmit()}
-      >
-        Get Recommendations
-      </Button>
-
-      <div className="recommended_tracks_container">
-        {recInfo.map((track, key) => (
-          <div
-            className="track_container"
-            onClick={() => {
-              if (userContext?.is_active) {
-                startPlayback({
-                  device_id: userContext.deviceId,
-                  position_ms: 0,
-                  headers: userContext.headers,
-                  uris: [track.uri],
-                });
+      <div className="recommendation_container">
+        <h1 className="recommendation_title">Recommendations</h1>
+        {errorMsg === "" ? (
+          <></>
+        ) : (
+          <h4 className="recommendation_error_text">{errorMsg}</h4>
+        )}
+        <div className="seed_select_container">
+          <Select
+            placeholder={"Select Artists"}
+            isMulti
+            styles={selectStyle}
+            value={curSeeds["artist"].value}
+            onChange={(newValue: any) => {
+              if (
+                numSeeds - curSeeds["artist"].value.length + newValue.length <=
+                maxSeeds
+              ) {
+                setErrorMsg("");
+                handleSeedChange("artist", newValue);
+              } else {
+                setErrorMsg(
+                  "Only five artists, genres and tracks combined may be selected"
+                );
               }
             }}
-            key={key}
-          >
-            <img src={track.album.images[2].url} alt="song cover" />
-            <div className="track_info_container">
-              <div className="track_info_title">{track.name} </div>
-              <div className="track_info_name">
-                {track.artists.map((artist: any) => artist.name).join(", ")}
+            options={artistOptions}
+            inputValue={artistInput}
+            onInputChange={(newValue) => {
+              setArtistInput(newValue);
+            }}
+            onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
+              if (event.key === "Enter") {
+                sendSearch("artist");
+                event.preventDefault();
+              }
+            }}
+          />
+          <Select
+            placeholder={"Select Genres"}
+            isMulti
+            styles={selectStyle}
+            value={curSeeds["genre"].value}
+            onChange={(newValue: any) => {
+              if (
+                numSeeds - curSeeds["genre"].value.length + newValue.length <=
+                maxSeeds
+              ) {
+                setErrorMsg("");
+                handleSeedChange("genre", newValue);
+              } else {
+                setErrorMsg(
+                  "Only five artists, genres and tracks combined may be selected"
+                );
+              }
+            }}
+            options={genreOptions}
+            inputValue={genreInput}
+            onInputChange={(newValue) => {
+              setGenreInput(newValue);
+            }}
+            onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
+              if (event.key === "Enter") {
+                sendSearch("genre");
+                event.preventDefault();
+              }
+            }}
+          />
+          <Select
+            placeholder={"Select Tracks"}
+            isMulti
+            styles={selectStyle}
+            value={curSeeds["track"].value}
+            onChange={(newValue: any) => {
+              if (
+                numSeeds - curSeeds["track"].value.length + newValue.length <=
+                maxSeeds
+              ) {
+                setErrorMsg("");
+                handleSeedChange("track", newValue);
+              } else {
+                setErrorMsg(
+                  "Only five artists, genres and tracks combined may be selected"
+                );
+              }
+            }}
+            options={trackOptions}
+            inputValue={trackInput}
+            onInputChange={(newValue) => {
+              setTrackInput(newValue);
+            }}
+            onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
+              if (event.key === "Enter") {
+                sendSearch("track");
+                event.preventDefault();
+              }
+            }}
+          />
+        </div>
+        <div className="top_slider_container">
+          {Object.keys(values)
+            .slice(0, Math.ceil(Object.keys(values).length) / 2)
+            .map((attribute, key) => (
+              <div className="slider_container" key={key}>
+                <h4 className="slider_title">{attribute}</h4>
+                <Slider
+                  sx={{
+                    '& input[type="range"]': {
+                      WebkitAppearance: "slider-vertical",
+                    },
+                    height: "150px",
+                  }}
+                  orientation="vertical"
+                  min={curValues[attribute].min}
+                  max={curValues[attribute].max}
+                  step={curValues[attribute].step}
+                  value={curValues[attribute].value}
+                  onChange={(event, newValue) => {
+                    handleChange(attribute, newValue);
+                  }}
+                  valueLabelDisplay="auto"
+                  disabled={!curValues[attribute].enabled}
+                />
+                <ToggleButton
+                  value="check"
+                  selected={curValues[attribute].enabled}
+                  onChange={() => toggleValue(attribute)}
+                  sx={{
+                    height: "30px",
+                    width: "30px",
+                  }}
+                >
+                  {curValues[attribute].enabled ? <CheckIcon /> : <ClearIcon />}
+                </ToggleButton>
+              </div>
+            ))}
+        </div>
+
+        <div className="bottom_slider_container">
+          {Object.keys(values)
+            .slice(
+              Math.ceil(Object.keys(values).length) / 2,
+              Object.keys(values).length
+            )
+            .map((attribute, key) => (
+              <div className="slider_container" key={key}>
+                <h4 className="slider_title">{attribute}</h4>
+                <Slider
+                  sx={{
+                    '& input[type="range"]': {
+                      WebkitAppearance: "slider-vertical",
+                    },
+                    height: "150px",
+                  }}
+                  orientation="vertical"
+                  min={curValues[attribute].min}
+                  max={curValues[attribute].max}
+                  step={curValues[attribute].step}
+                  value={curValues[attribute].value}
+                  onChange={(event, newValue) =>
+                    handleChange(attribute, newValue)
+                  }
+                  valueLabelDisplay="auto"
+                  disabled={!curValues[attribute].enabled}
+                />
+                <ToggleButton
+                  value="check"
+                  selected={curValues[attribute].enabled}
+                  onChange={() => toggleValue(attribute)}
+                  sx={{
+                    height: "30px",
+                    width: "30px",
+                  }}
+                >
+                  {curValues[attribute].enabled ? <CheckIcon /> : <ClearIcon />}
+                </ToggleButton>
+              </div>
+            ))}
+        </div>
+
+        <Button
+          sx={{ marginBottom: recInfo.length === 0 ? "20px" : "0px" }}
+          variant="contained"
+          onClick={() => handleSubmit()}
+        >
+          Get Recommendations
+        </Button>
+
+        <div className="recommended_tracks_container">
+          {recInfo.map((track, key) => (
+            <div
+              className="track_container"
+              onClick={() => {
+                if (userContext?.is_active) {
+                  startPlayback({
+                    device_id: userContext.deviceId,
+                    position_ms: 0,
+                    headers: userContext.headers,
+                    uris: [track.uri],
+                  });
+                }
+              }}
+              key={key}
+            >
+              <img src={track.album.images[2].url} alt="song cover" />
+              <div className="track_info_container">
+                <div className="track_info_title">{track.name} </div>
+                <div className="track_info_name">
+                  {track.artists
+                    .map((artist: ArtistInterface) => artist.name)
+                    .join(", ")}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      {recInfo.length === 0 ? (
-        <></>
-      ) : (
-        <>
-          <PlaylistAdd
-            open={addOpen}
-            setOpen={setAddOpen}
-            userId={userContext?.userProfile.id}
-            headers={userContext?.headers}
-            useHistory={false}
-            tracks={recInfo}
-          />
-          <Button
-            sx={{ marginTop: "10px", marginBottom: "100px" }}
-            variant="contained"
-            onClick={() => setAddOpen(true)}
-          >
-            Create Playlist
-          </Button>
-        </>
-      )}
+        {recInfo.length === 0 ? (
+          <></>
+        ) : (
+          <>
+            <PlaylistAdd
+              open={addOpen}
+              setOpen={setAddOpen}
+              userId={
+                userContext?.userProfile !== null
+                  ? userContext!.userProfile.id
+                  : ""
+              }
+              headers={userContext?.headers}
+              useHistory={false}
+              tracks={recInfo}
+            />
+            <Button
+              sx={{ marginTop: "10px", marginBottom: "100px" }}
+              variant="contained"
+              onClick={() => setAddOpen(true)}
+            >
+              Create Playlist
+            </Button>
+          </>
+        )}
+      </div>
     </>
   );
 };

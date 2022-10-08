@@ -1,9 +1,9 @@
-import { FunctionComponent } from "react";
+import React, { FunctionComponent } from "react";
 import { TextField } from "@mui/material";
 
 const PlaylistDesc: FunctionComponent<{
   desc: string;
-  setDesc: any;
+  setDesc: React.Dispatch<React.SetStateAction<string>>;
   styles: any;
 }> = ({ desc, setDesc, styles }) => {
   return (

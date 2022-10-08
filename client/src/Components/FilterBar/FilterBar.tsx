@@ -1,11 +1,12 @@
 import { InputAdornment, TextField } from "@mui/material";
 import { FunctionComponent, useEffect, useState } from "react";
 import FilterListIcon from "@mui/icons-material/FilterList";
+import { PlaylistInterface } from "../../Types/SpotifyApi";
 
 // TODO: test filtering and loading
 const FilterBar: FunctionComponent<{
-  playlists: any;
-  setFilterPlaylists: any;
+  playlists: PlaylistInterface[];
+  setFilterPlaylists: React.Dispatch<React.SetStateAction<PlaylistInterface[]>>;
 }> = ({ playlists, setFilterPlaylists }) => {
   const [query, setQuery] = useState<string>("");
   useEffect(() => {
@@ -16,7 +17,7 @@ const FilterBar: FunctionComponent<{
           playlist.name.includes(query)
         )
       );
-  }, [query, playlists]);
+  }, [query, playlists, setFilterPlaylists]);
   return (
     <div className="playlist_filter_bar">
       <TextField
@@ -30,7 +31,7 @@ const FilterBar: FunctionComponent<{
         variant="filled"
         size="medium"
         value={query}
-        onChange={(event: any) => {
+        onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
           setQuery(event.target.value);
         }}
         InputProps={{

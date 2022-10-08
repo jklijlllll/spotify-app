@@ -21,15 +21,7 @@ const Main: FunctionComponent<{
       >
         {curComp === CurrentComponent.Recommendations ? (
           <>
-            <div className="search_container">
-              <SearchBar update={update[CurrentComponent.Recommendations]} />
-            </div>
-
-            <div className="recommendation_container">
-              <Recommendation
-                update={update[CurrentComponent.Recommendations]}
-              />
-            </div>
+            <Recommendation update={update[CurrentComponent.Recommendations]} />
           </>
         ) : (
           <Playlist update={update[CurrentComponent.Playlists]} />

@@ -1,4 +1,4 @@
-import { FunctionComponent, useReducer } from "react";
+import { FunctionComponent } from "react";
 import KeyboardTabIcon from "@mui/icons-material/KeyboardTab";
 import { IconButton } from "@mui/material";
 import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
@@ -9,9 +9,9 @@ import { CurrentComponent } from "../../Pages/Home/Home";
 // TODO: add logout functionality
 const NavBar: FunctionComponent<{
   navCollapse: boolean;
-  setNavCollapse: any;
-  setCurComp: any;
-  update: any[];
+  setNavCollapse: React.Dispatch<React.SetStateAction<boolean>>;
+  setCurComp: React.Dispatch<React.SetStateAction<CurrentComponent>>;
+  update: React.Dispatch<React.SetStateAction<number>>[];
 }> = ({ navCollapse, setNavCollapse, setCurComp, update }) => {
   return (
     <>

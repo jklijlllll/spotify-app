@@ -5,21 +5,22 @@ import PlaylistDesc from "../Inputs/PlaylistDesc";
 import PlaylistImage from "../Inputs/PlaylistImage";
 import ErrorIcon from "@mui/icons-material/Error";
 import axios from "axios";
+import { ArtistInterface, TrackInterface } from "../../Types/SpotifyApi";
 
 const PlaylistAdd: FunctionComponent<{
   open: boolean;
-  setOpen: any;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   userId: string;
   headers: any;
   useHistory: boolean;
-  tracks: any[];
+  tracks: TrackInterface[];
 }> = ({ open, setOpen, userId, headers, useHistory, tracks }) => {
   const [name, setName] = useState<string>("");
   const [desc, setDesc] = useState<string>("");
   const [error, setError] = useState<string>("");
 
   const [imageURL, setImageURL] = useState<string>("");
-  const [image64, setImage64] = useState<any>(null);
+  const [image64, setImage64] = useState<string>("");
 
   const [loadCreate, setLoadCreate] = useState<boolean>(false);
   const [loadTracks, setLoadTracks] = useState<boolean>(false);
@@ -27,13 +28,13 @@ const PlaylistAdd: FunctionComponent<{
 
   const [playlistId, setPlaylistId] = useState<string>("");
 
-  const [addTracks, setAddTracks] = useState<any[]>(tracks);
+  const [addTracks, setAddTracks] = useState<TrackInterface[]>(tracks);
 
   const maxTracks = 100;
 
   const removeImage = () => {
     setImageURL("");
-    setImage64(null);
+    setImage64("");
   };
 
   const [selectedTracks, setSelectedTracks] = useState<boolean[]>([]);
@@ -48,7 +49,6 @@ const PlaylistAdd: FunctionComponent<{
       setSelectedTracks(oldSelect);
     }
   };
-
   useEffect(() => {
     updateTracks();
 
@@ -57,11 +57,12 @@ const PlaylistAdd: FunctionComponent<{
     return () => {
       window.removeEventListener("changed", updateTracks);
     };
+    // eslint-disable-next-line
   }, []);
 
   useEffect(() => {
     setSelectedTracks(new Array(addTracks.length).fill(!useHistory));
-  }, [addTracks]);
+  }, [addTracks, useHistory]);
 
   const handleChange = (
     event: React.ChangeEvent<HTMLInputElement>,
@@ -77,11 +78,11 @@ const PlaylistAdd: FunctionComponent<{
     setLoadCreate(true);
     if (selectedTracks.filter((value) => value === true).length !== 0)
       setLoadTracks(true);
-    if (image64 !== null) setLoadImage(true);
+    if (image64 !== "") setLoadImage(true);
   };
 
   useEffect(() => {
-    if (loadCreate === false) return;
+    if (loadCreate === false || userId === "") return;
 
     axios
       .post(
@@ -99,7 +100,7 @@ const PlaylistAdd: FunctionComponent<{
       .catch((error) => {
         console.log(error);
       });
-  }, [loadCreate]);
+  }, [loadCreate, desc, headers, loadImage, loadTracks, name, setOpen, userId]);
 
   useEffect(() => {
     if (playlistId === "") return;
@@ -125,10 +126,11 @@ const PlaylistAdd: FunctionComponent<{
       .catch((error) => {
         console.log(error);
       });
-  }, [playlistId]);
+  }, [playlistId, addTracks, headers, selectedTracks, setOpen]);
 
   useEffect(() => {
     if (playlistId === "" || loadImage === false) return;
+    console.log("add");
 
     axios
       .put(
@@ -148,7 +150,7 @@ const PlaylistAdd: FunctionComponent<{
       .catch((error) => {
         console.log(error);
       });
-  }, [playlistId]);
+  }, [playlistId, headers, image64, loadImage, setOpen]);
 
   return (
     <>
@@ -238,7 +240,7 @@ const PlaylistAdd: FunctionComponent<{
                       </div>
                       <div className="playlist_add_track_info_name">
                         {track.artists
-                          .map((artist: any) => artist.name)
+                          .map((artist: ArtistInterface) => artist.name)
                           .join(", ")}
                       </div>
                     </div>

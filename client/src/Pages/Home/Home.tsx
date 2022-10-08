@@ -1,9 +1,10 @@
 import axios from "axios";
 import React, { useEffect } from "react";
-import { FunctionComponent, useState } from "react";
+import { FunctionComponent, useState, useMemo } from "react";
 import Main from "../../Components/Main";
 import NavBar from "../../Components/NavBar";
 import WebPlayback from "../../Components/WebPlayback";
+import { TrackInterface, UserInterface } from "../../Types/SpotifyApi";
 
 interface UserContextInterface {
   token: string;
@@ -12,23 +13,20 @@ interface UserContextInterface {
   };
   is_active: boolean;
   deviceId: string;
-  userProfile: any;
+  userProfile: UserInterface | null;
 }
 
 export const UserContext = React.createContext<UserContextInterface | null>(
   null
 );
 
+export enum CurrentComponent {
+  Recommendations,
+  Playlists,
+}
+
 const Home: FunctionComponent<{ token: string }> = ({ token }) => {
-  const track = {
-    name: "",
-    album: {
-      images: [{ url: "" }],
-    },
-    artists: [{ name: "" }],
-    uri: "",
-  };
-  const [current_track, setTrack] = useState(track);
+  const [current_track, setTrack] = useState<TrackInterface | null>(null);
   const [is_active, setActive] = useState<boolean>(false);
   const [deviceId, setDeviceId] = useState<string>("");
   const [navCollapse, setNavCollapse] = useState<boolean>(false);
@@ -41,11 +39,11 @@ const Home: FunctionComponent<{ token: string }> = ({ token }) => {
   let updateArray = [updateRec, updatePlay];
   let setUpdateArray = [setUpdateRec, setUpdatePlay];
 
-  const [userProfile, setUserProfile] = useState({});
+  const [userProfile, setUserProfile] = useState<UserInterface | null>(null);
 
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
+  const headers = useMemo(() => {
+    return { Authorization: `Bearer ${token}` };
+  }, [token]);
 
   const userContext: UserContextInterface = {
     token: token,
@@ -68,7 +66,7 @@ const Home: FunctionComponent<{ token: string }> = ({ token }) => {
     } else {
       setUserProfile(JSON.parse(localStorage.getItem("user_profile")!));
     }
-  }, [token]);
+  }, [token, headers]);
 
   // TODO: allow player to work on refresh, localstorage (playlist track options updates current_track like status)
   // TODO: only provide context where necessary
@@ -115,8 +113,3 @@ const Home: FunctionComponent<{ token: string }> = ({ token }) => {
 };
 
 export default Home;
-
-export enum CurrentComponent {
-  Recommendations,
-  Playlists,
-}

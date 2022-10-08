@@ -1,4 +1,10 @@
-import { FunctionComponent, useContext, useEffect, useState } from "react";
+import {
+  FunctionComponent,
+  useContext,
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import SkipNextIcon from "@mui/icons-material/SkipNext";
 import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
@@ -18,6 +24,12 @@ import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import { UserContext } from "../../Pages/Home/Home";
 import { milliToMinandSec } from "../../Functions/milliToMinAndSec";
 import useHistory from "../../Hooks/useHistory";
+import {
+  ArtistInterface,
+  DeviceInterface,
+  TrackInterface,
+  WebPlaybackState,
+} from "../../Types/SpotifyApi";
 
 // TODO: add device control
 // TODO: save player state and volume on reload
@@ -25,32 +37,40 @@ import useHistory from "../../Hooks/useHistory";
 // TODO: fix player position when song is loading but not playing
 // TODO: add loading indicator
 const WebPlayback: FunctionComponent<{
-  current_track: any;
-  setTrack: any;
-  setActive: any;
-  setDeviceId: any;
+  current_track: TrackInterface | null;
+  setTrack: React.Dispatch<React.SetStateAction<TrackInterface | null>>;
+  setActive: React.Dispatch<React.SetStateAction<boolean>>;
+  setDeviceId: React.Dispatch<React.SetStateAction<string>>;
 }> = ({ current_track, setTrack, setActive, setDeviceId }) => {
   const [player, setPlayer] = useState<any>(undefined);
-  const [is_paused, setPaused] = useState(true);
-  const [volume, setVolume] = useState(50);
+  const [is_paused, setPaused] = useState<boolean>(true);
+  const [volume, setVolume] = useState<number>(50);
   const [position, setPosition] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
   const [updateTime, setUpdateTime] = useState<number>(0);
   const [devicesOpen, setDevicesOpen] = useState<boolean>(false);
-  const [devicesInfo, setDevicesInfo] = useState<any[]>([]);
+  const [devicesInfo, setDevicesInfo] = useState<DeviceInterface[]>([]);
   const [is_liked, setIsLiked] = useState<boolean>(false);
 
   const userContext = useContext(UserContext);
 
   useHistory({ current_track: current_track });
 
-  const getPosition = () => {
-    if (is_paused) {
-      return position;
-    }
-    let cur_position = position + (performance.now() - updateTime);
-    return cur_position > duration ? duration : cur_position;
-  };
+  const getPosition = useCallback(
+    (
+      is_paused: boolean,
+      position: number,
+      updateTime: number,
+      duration: number
+    ) => {
+      if (is_paused) {
+        return position;
+      }
+      let cur_position = position + (performance.now() - updateTime);
+      return cur_position > duration ? duration : cur_position;
+    },
+    []
+  );
 
   useEffect(() => {
     if (userContext?.token !== "") {
@@ -82,48 +102,55 @@ const WebPlayback: FunctionComponent<{
           setDeviceId("");
         });
 
-        player.addListener("player_state_changed", (state: any) => {
-          if (!state) {
-            return;
+        player.addListener(
+          "player_state_changed",
+          (state: WebPlaybackState) => {
+            if (!state) {
+              return;
+            }
+
+            console.log(state);
+            setTrack(state.track_window.current_track);
+            setPaused(state.paused);
+            setPosition(state.position);
+            setDuration(state.duration);
+            setUpdateTime(performance.now());
+
+            player.getCurrentState().then((state: WebPlaybackState) => {
+              !state ? setActive(false) : setActive(true);
+            });
           }
-
-          console.log(state);
-          setTrack(state.track_window.current_track);
-          setPaused(state.paused);
-          setPosition(state.position);
-          setDuration(state.duration);
-          setUpdateTime(performance.now());
-
-          player.getCurrentState().then((state: any) => {
-            !state ? setActive(false) : setActive(true);
-          });
-        });
+        );
         player.connect();
       };
     }
-  }, [userContext?.token]);
+  }, [userContext?.token, setActive, setDeviceId, setTrack]);
 
-  const transferPlayback = (deviceId: string) => {
-    axios
-      .put(
-        "https://api.spotify.com/v1/me/player",
-        { device_ids: [deviceId], play: false },
-        { headers: userContext?.headers }
-      )
-      .then((response) => {})
-      .catch((error) => {
-        console.log(error);
-      });
-  };
+  const transferPlayback = useCallback(
+    (deviceId: string) => {
+      axios
+        .put(
+          "https://api.spotify.com/v1/me/player",
+          { device_ids: [deviceId], play: false },
+          { headers: userContext?.headers }
+        )
+        .then((response) => {})
+        .catch((error) => {
+          console.log(error);
+        });
+    },
+    [userContext?.headers]
+  );
 
   useEffect(() => {
     if (userContext?.deviceId === "") return;
 
     transferPlayback(userContext?.deviceId!);
-  }, [userContext?.deviceId]);
+  }, [userContext?.deviceId, transferPlayback]);
 
   useEffect(() => {
-    if (!userContext!.is_active) return;
+    if (userContext === null || userContext.is_active || player === undefined)
+      return;
     player.setVolume(volume / 100);
     const volumeInterval = setInterval(() => {
       player.getVolume().then((volume: any) => {
@@ -131,18 +158,18 @@ const WebPlayback: FunctionComponent<{
       });
     }, 1000);
     return () => clearInterval(volumeInterval);
-  }, [volume, userContext!.is_active]);
+  }, [volume, player, userContext]);
 
   useEffect(() => {
     const updateInterval = setInterval(() => {
-      setPosition(getPosition());
+      setPosition(getPosition(is_paused, position, updateTime, duration));
       setUpdateTime(performance.now());
     }, 100);
     return () => clearInterval(updateInterval);
-  }, [position, is_paused]);
+  }, [position, is_paused, getPosition, duration, updateTime]);
 
   useEffect(() => {
-    if (!userContext?.is_active) return;
+    if (!userContext?.is_active || current_track === null) return;
 
     if (
       sessionStorage.getItem("current_track") === null ||
@@ -168,13 +195,13 @@ const WebPlayback: FunctionComponent<{
     } else {
       setIsLiked(JSON.parse(sessionStorage.getItem("current_track")!).isLiked);
     }
-  }, [userContext?.is_active, current_track]);
+  }, [userContext, current_track]);
 
   const likeTrack = () => {
     axios
       .put(
         "https://api.spotify.com/v1/me/tracks",
-        { ids: [current_track.id] },
+        { ids: [current_track!.id] },
         { headers: userContext?.headers }
       )
       .then((response) => setIsLiked(true))
@@ -184,7 +211,7 @@ const WebPlayback: FunctionComponent<{
   const unLikeTrack = () => {
     axios
       .delete("https://api.spotify.com/v1/me/tracks", {
-        params: { ids: current_track.id },
+        params: { ids: current_track!.id },
         headers: userContext?.headers,
       })
       .then((response) => setIsLiked(false))
@@ -193,7 +220,7 @@ const WebPlayback: FunctionComponent<{
 
   // TODO: update device info on device change
   // TODO: fix transfer device issue
-  const updateDeviceInfo = () => {
+  const updateDeviceInfo = useCallback(() => {
     axios
       .get("https://api.spotify.com/v1/me/player/devices", {
         headers: userContext?.headers,
@@ -202,20 +229,14 @@ const WebPlayback: FunctionComponent<{
         setDevicesInfo(response.data.devices);
       })
       .catch((error) => console.log(error));
-  };
+  }, [userContext?.headers]);
+
   useEffect(() => {
     if (!devicesOpen) return;
     updateDeviceInfo();
-  }, [devicesOpen]);
+  }, [devicesOpen, updateDeviceInfo]);
 
-  let artist_names = "";
-  if (current_track.artists.length > 0) {
-    artist_names = current_track.artists
-      .map((artist: any) => artist.name)
-      .join(", ");
-  }
-
-  if (userContext?.is_active) {
+  if (userContext?.is_active && current_track !== null) {
     return (
       <>
         <div className="position_container">
@@ -237,7 +258,7 @@ const WebPlayback: FunctionComponent<{
             }}
             max={duration}
             value={position}
-            onChange={(event: any, newValue: any) => {
+            onChange={(newValue: any) => {
               player.seek(newValue).then(() => {
                 setPosition(newValue);
                 setUpdateTime(performance.now());
@@ -256,7 +277,11 @@ const WebPlayback: FunctionComponent<{
           <div className="song_info">
             <div className="now_playing_info">
               <div className="now_playing_name">{current_track.name}</div>
-              <div className="now_playing_artist">{artist_names}</div>
+              <div className="now_playing_artist">
+                {current_track.artists
+                  .map((artist: ArtistInterface) => artist.name)
+                  .join(", ")}
+              </div>
             </div>
             <div className="like_icon_container">
               {is_liked ? (
@@ -314,7 +339,7 @@ const WebPlayback: FunctionComponent<{
                       }}
                       orientation="vertical"
                       value={volume}
-                      onChange={(event: any, newValue: any) => {
+                      onChange={(newValue: any) => {
                         setVolume(newValue);
                       }}
                       valueLabelDisplay="auto"

@@ -3,6 +3,7 @@ import axios from "axios"
 interface PlaybackParameters {
     device_id: string; position_ms: number; headers: any; context_uri?: string; uris?: string[]; offset?: any; 
 }
+// TODO: check for is_playable
 export function startPlayback({device_id, position_ms, headers, context_uri, uris, offset} : PlaybackParameters): void {
 
     axios.put("https://api.spotify.com/v1/me/player/play",

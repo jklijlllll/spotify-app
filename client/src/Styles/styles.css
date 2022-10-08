@@ -687,6 +687,12 @@ a:active { text-decoration: none; }
 .playlist_view_add_title {
   font-size: 32px;
   min-width: 100%;
+  margin: 0;
+  padding-bottom: 10px;
+}
+
+.playlist_view_add_search_bar {
+  padding-bottom: 20px;
 }
 
 .playlist_view_add_tracks {

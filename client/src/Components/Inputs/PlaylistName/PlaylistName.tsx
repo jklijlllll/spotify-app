@@ -1,10 +1,10 @@
-import { FunctionComponent } from "react";
+import React, { FunctionComponent } from "react";
 import { TextField } from "@mui/material";
 
 const PlaylistName: FunctionComponent<{
   name: string;
-  setName: any;
-  setError: any;
+  setName: React.Dispatch<React.SetStateAction<string>>;
+  setError: React.Dispatch<React.SetStateAction<string>>;
   style: any;
 }> = ({ name, setName, setError, style }) => {
   return (

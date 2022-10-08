@@ -1,15 +1,18 @@
 import axios, { Canceler } from "axios";
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
+import { PlaylistInterface} from "../Types/SpotifyApi";
 
-export default function usePlaylistLoad(offset: number, limit: number, headers: any, userId: string, curPlaylist: any, update: number, snapshot_id?: string) {
+export default function usePlaylistLoad(offset: number, limit: number, headers: any, userId: string, curPlaylist: PlaylistInterface, update: number, snapshot_id?: string) {
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<boolean>(false);
-  const [playlists, setPlaylists] = useState<any[]>([]);
+  const [playlists, setPlaylists] = useState<PlaylistInterface[]>([]);
   const [tracks, setTracks] = useState<any[]>([]);
   const [hasMore, setHasMore] = useState<boolean>(false);
 
-  const url = curPlaylist.id !== "" ? `https://api.spotify.com/v1/playlists/${curPlaylist.id}/tracks`:`https://api.spotify.com/v1/me/playlists` 
+  const url = useMemo(() => {
+    return curPlaylist.id !== "" ? `https://api.spotify.com/v1/playlists/${curPlaylist.id}/tracks`:`https://api.spotify.com/v1/me/playlists`;
+  },[curPlaylist.id])
 
   // TODO: add liked song info
   // TODO: update tracks.tracks => tracks (Playlist.tsx)
@@ -30,6 +33,8 @@ export default function usePlaylistLoad(offset: number, limit: number, headers: 
   },[curPlaylist, snapshot_id])
 
   useEffect(() => {
+
+    if (userId === "") return;
     setLoading(true);
     setError(false);
     let cancel: Canceler;
@@ -62,7 +67,7 @@ export default function usePlaylistLoad(offset: number, limit: number, headers: 
     })
 
     return () => cancel();
-  },[offset, curPlaylist])
+  },[offset, curPlaylist, userId, headers, limit, url])
 
   
 

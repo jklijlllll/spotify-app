@@ -2,12 +2,9 @@ import {
   Fade,
   IconButton,
   Modal,
-  TextField,
   ToggleButtonGroup,
   ToggleButton,
   Button,
-  Menu,
-  MenuItem,
   CircularProgress,
 } from "@mui/material";
 import { FunctionComponent, useEffect, useState } from "react";
@@ -21,18 +18,19 @@ import axios from "axios";
 import PlaylistName from "../Inputs/PlaylistName";
 import PlaylistDesc from "../Inputs/PlaylistDesc";
 import PlaylistImage from "../Inputs/PlaylistImage";
+import { PlaylistInterface } from "../../Types/SpotifyApi";
 
 const PlaylistEdit: FunctionComponent<{
   open: boolean;
-  setOpen: any;
-  curPlaylist: any;
-  setCurPlaylist: any;
+  setOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  curPlaylist: PlaylistInterface;
+  setCurPlaylist: React.Dispatch<React.SetStateAction<PlaylistInterface>>;
   headers: any;
 }> = ({ open, setOpen, curPlaylist, setCurPlaylist, headers }) => {
   const [imageURL, setImageURL] = useState<string>(
     curPlaylist.images[0] ? curPlaylist.images[0].url : ""
   );
-  const [image64, setImage64] = useState<any>(null);
+  const [image64, setImage64] = useState<string>("");
 
   const [name, setName] = useState<string>(curPlaylist.name || "");
   const [desc, setDesc] = useState<string>(curPlaylist.description || "");
@@ -57,7 +55,7 @@ const PlaylistEdit: FunctionComponent<{
 
   const removeImage = () => {
     setImageURL(curPlaylist.images[0] ? curPlaylist.images[0].url : "");
-    setImage64(null);
+    setImage64("");
   };
 
   const handleSubmit = () => {
@@ -93,7 +91,7 @@ const PlaylistEdit: FunctionComponent<{
         .catch((error) => {});
     }
 
-    if (image64 !== null) {
+    if (image64 !== "") {
       hasChanged = true;
       setLoadImage(true);
       axios
@@ -128,12 +126,15 @@ const PlaylistEdit: FunctionComponent<{
         headers: headers,
       })
       .then((response) => {
-        setCurPlaylist({
-          ...curPlaylist,
-          images: response.data,
+        setCurPlaylist((prevPlaylist) => {
+          return {
+            ...prevPlaylist,
+            images: response.data,
+          };
         });
       });
-  }, [open]);
+  }, [open, curPlaylist.id, headers, setCurPlaylist]);
+
   return (
     <>
       <Modal

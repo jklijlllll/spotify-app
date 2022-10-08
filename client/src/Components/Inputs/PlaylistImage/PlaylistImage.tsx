@@ -3,13 +3,14 @@ import { FunctionComponent, useState, useRef } from "react";
 import MoreHorizIcon from "@mui/icons-material/MoreHoriz";
 import EditIcon from "@mui/icons-material/Edit";
 import MusicNoteIcon from "@mui/icons-material/MusicNote";
+import { PlaylistInterface } from "../../../Types/SpotifyApi";
 
 const PlaylistImage: FunctionComponent<{
-  setImageURL: any;
-  setImage64: any;
-  curPlaylist: any;
+  setImageURL: React.Dispatch<React.SetStateAction<string>>;
+  setImage64: React.Dispatch<React.SetStateAction<string>>;
+  curPlaylist: PlaylistInterface | null;
   imageURL: string;
-  removeImage: any;
+  removeImage: () => void;
   width: number;
   height: number;
 }> = ({
@@ -21,7 +22,7 @@ const PlaylistImage: FunctionComponent<{
   width,
   height,
 }) => {
-  const fileInput = useRef<any>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
@@ -61,7 +62,7 @@ const PlaylistImage: FunctionComponent<{
         {imageURL !== "" || (curPlaylist !== null && curPlaylist.images[0]) ? (
           <img
             src={imageURL}
-            alt="playlist image"
+            alt="playlist cover"
             style={{
               opacity: isHovered ? 0.2 : 1.0,
               width: width + "px",
