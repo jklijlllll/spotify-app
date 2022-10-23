@@ -24,33 +24,40 @@ const PlaylistEdit: FunctionComponent<{
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   curPlaylist: PlaylistInterface;
-  setCurPlaylist: React.Dispatch<React.SetStateAction<PlaylistInterface>>;
   headers: any;
-}> = ({ open, setOpen, curPlaylist, setCurPlaylist, headers }) => {
-  const [imageURL, setImageURL] = useState<string>(
-    curPlaylist.images[0] ? curPlaylist.images[0].url : ""
-  );
+  updateInfo: (
+    name: string,
+    desc: string,
+    isPublic: boolean,
+    isCollab: boolean
+  ) => void;
+  updateImage: (images: any) => void;
+}> = ({ open, setOpen, curPlaylist, headers, updateInfo, updateImage }) => {
+  const [imageURL, setImageURL] = useState<string>("");
   const [image64, setImage64] = useState<string>("");
 
-  const [name, setName] = useState<string>(curPlaylist.name || "");
-  const [desc, setDesc] = useState<string>(curPlaylist.description || "");
+  const [name, setName] = useState<string>("");
+  const [desc, setDesc] = useState<string>("");
 
-  const [isPublic, setIsPublic] = useState<boolean>(curPlaylist.public);
-  const [isCollab, setIsCollab] = useState<boolean>(curPlaylist.collaborative);
+  const [isPublic, setIsPublic] = useState<boolean>(true);
+  const [isCollab, setIsCollab] = useState<boolean>(false);
 
-  const [error, setError] = useState<string>("");
+  const [nameError, setNameError] = useState<string>("");
+  const [imageError, setImageError] = useState<string>("");
 
   const [loadInfo, setLoadInfo] = useState<boolean>(false);
   const [loadImage, setLoadImage] = useState<boolean>(false);
 
+  useEffect(() => {
+    setImageURL(curPlaylist.images[0] ? curPlaylist.images[0].url : "");
+    setName(curPlaylist.name);
+    setDesc(curPlaylist.description || "");
+    setIsPublic(curPlaylist.public);
+    setIsCollab(curPlaylist.collaborative);
+  }, [curPlaylist]);
+
   const updatePlaylist = () => {
-    setCurPlaylist({
-      ...curPlaylist,
-      name: name,
-      description: desc,
-      public: isPublic,
-      collaborative: isPublic ? false : isCollab,
-    });
+    updateInfo(name, desc, isPublic, isCollab);
   };
 
   const removeImage = () => {
@@ -119,21 +126,16 @@ const PlaylistEdit: FunctionComponent<{
   };
 
   useEffect(() => {
-    if (open) return;
+    if (open || curPlaylist.id === "") return;
 
     axios
       .get(`https://api.spotify.com/v1/playlists/${curPlaylist.id}/images`, {
         headers: headers,
       })
       .then((response) => {
-        setCurPlaylist((prevPlaylist) => {
-          return {
-            ...prevPlaylist,
-            images: response.data,
-          };
-        });
+        updateImage(response.data);
       });
-  }, [open, curPlaylist.id, headers, setCurPlaylist]);
+  }, [open, curPlaylist.id, headers, updateInfo, updateImage]);
 
   return (
     <>
@@ -168,12 +170,15 @@ const PlaylistEdit: FunctionComponent<{
                   <ClearIcon sx={{ color: "white" }} />
                 </IconButton>
               </div>
-              {error === "" ? (
+              {nameError === "" && imageError === "" ? (
                 <></>
               ) : (
-                <div className="playlist_edit_error_container">
+                <div className="playlist_add_error_container">
                   <ErrorIcon fontSize="small" />
-                  <h4 className="playlist_edit_error_text">{error}</h4>
+                  <div className="playlist_add_error_flex">
+                    <h4 className="playlist_add_error_text">{nameError}</h4>
+                    <h4 className="playlist_add_error_text">{imageError}</h4>
+                  </div>
                 </div>
               )}
               <div className="playlist_edit_flex">
@@ -185,13 +190,14 @@ const PlaylistEdit: FunctionComponent<{
                   removeImage={removeImage}
                   width={128}
                   height={128}
+                  setError={setImageError}
                 />
 
                 <div className="playlist_edit_info_container">
                   <PlaylistName
                     name={name}
                     setName={setName}
-                    setError={setError}
+                    setError={setNameError}
                     style={{
                       color: "white",
                       backgroundColor: "gray",

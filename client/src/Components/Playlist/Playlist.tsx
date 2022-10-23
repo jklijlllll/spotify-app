@@ -1,4 +1,4 @@
-import {
+import React, {
   FunctionComponent,
   useCallback,
   useContext,
@@ -66,6 +66,8 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
   const [curPlaylist, setCurPlaylist] =
     useState<PlaylistInterface>(emptyPlaylist);
 
+  const [playlists, setPlaylists] = useState<PlaylistInterface[]>([]);
+
   const [filterPlaylists, setFilterPlaylists] = useState<PlaylistInterface[]>(
     []
   );
@@ -75,7 +77,8 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
 
   const [snapshot_id, setSnapShotId] = useState<string>("");
 
-  const { loading, error, playlists, tracks, hasMore } = usePlaylistLoad(
+  const { loading, error, tracks, hasMore } = usePlaylistLoad(
+    setPlaylists,
     offset,
     limit,
     userContext?.headers,
@@ -106,10 +109,6 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
     [loading, hasMore]
   );
 
-  // TODO: improve UI
-  // TODO: add song preview on playlist hover/select/right click (context menu)
-
-  // TODO: update on playlist creation
   // TODO: fix menu open errors
 
   let dateFormat: Intl.DateTimeFormatOptions = {
@@ -198,13 +197,151 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
         headers: userContext?.headers,
       })
       .then((response) => {
+        console.log(response.data);
         setCurPlaylist(response.data);
         // TODO: do not change if same playlist
         setSnapShotId("");
       })
-      .catch((error) => console.log(error));
-  }, [snapshot_id, curPlaylist.id, userContext?.headers]);
+      .catch((error) => {
+        console.log(error);
+        setCurPlaylist(emptyPlaylist);
+      });
+  }, [snapshot_id, curPlaylist.id, userContext?.headers, emptyPlaylist]);
+
   // TODO: test no playlist view
+
+  const [contextMenu, setContextMenu] = useState<{
+    mouseX: number;
+    mouseY: number;
+  } | null>(null);
+
+  const handlePlaylistClick = (playlist: PlaylistInterface) => {
+    if (contextMenu !== null) {
+      setContextMenu(null);
+      return;
+    }
+
+    axios
+      .get(
+        `https://api.spotify.com/v1/playlists/${playlist.id}/followers/contains`,
+        {
+          params: { ids: userContext?.userProfile?.id },
+          headers: userContext?.headers,
+        }
+      )
+      .then((response) => {
+        if (response.data[0]) {
+          setCurPlaylist(playlist);
+        } else {
+          removePlaylist(playlist.id);
+          setCurPlaylist(emptyPlaylist);
+        }
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+
+  const handleContextMenu = (event: React.MouseEvent) => {
+    event.preventDefault();
+    setContextMenu(
+      contextMenu === null
+        ? {
+            mouseX: event.clientX + 2,
+            mouseY: event.clientY - 6,
+          }
+        : null
+    );
+  };
+
+  const handleCloseContextMenu = (event: React.MouseEvent) => {
+    event.stopPropagation();
+    setContextMenu(null);
+  };
+
+  const [selectPlaylist, setSelectPlaylist] =
+    useState<PlaylistInterface>(emptyPlaylist);
+
+  const deletePlaylist = () => {
+    if (selectPlaylist === emptyPlaylist) return;
+    axios
+      .delete(
+        `https://api.spotify.com/v1/playlists/${selectPlaylist.id}/followers`,
+        {
+          headers: userContext?.headers,
+        }
+      )
+      .then((response) => {
+        removePlaylist(selectPlaylist.id);
+      })
+      .catch((error) => console.log(error));
+  };
+
+  const removePlaylist = (id: string) => {
+    setPlaylists((playlists) => {
+      playlists.splice(
+        playlists.findIndex((p) => p.id === id),
+        1
+      );
+      return [...playlists];
+    });
+  };
+
+  const updateCurPlaylist = (
+    name: string,
+    desc: string,
+    isPublic: boolean,
+    isCollab: boolean
+  ) => {
+    setCurPlaylist({
+      ...curPlaylist,
+      name: name,
+      description: desc,
+      public: isPublic,
+      collaborative: isPublic ? false : isCollab,
+    });
+  };
+
+  const updatePlaylists = (
+    name: string,
+    desc: string,
+    isPublic: boolean,
+    isCollab: boolean
+  ) => {
+    let oldPlaylists = playlists;
+    let index = oldPlaylists.findIndex((p) => p.id === selectPlaylist.id);
+
+    oldPlaylists[index] = {
+      ...oldPlaylists[index],
+      name: name,
+      description: desc,
+      public: isPublic,
+      collaborative: isPublic ? false : isCollab,
+    };
+
+    setPlaylists(oldPlaylists);
+  };
+
+  const updateCurPlaylistImage = (images: any) => {
+    setCurPlaylist((prevPlaylist) => {
+      return {
+        ...prevPlaylist,
+        images: images,
+      };
+    });
+  };
+
+  const updatePlaylistImage = (images: any) => {
+    let oldPlaylists = playlists;
+    let index = oldPlaylists.findIndex((p) => p.id === selectPlaylist.id);
+
+    oldPlaylists[index] = {
+      ...oldPlaylists[index],
+      images: images,
+    };
+
+    setPlaylists(oldPlaylists);
+  };
 
   return (
     <div className="playlist_container">
@@ -217,12 +354,22 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
         headers={userContext?.headers}
         useHistory={true}
         tracks={[]}
+        setPlaylists={setPlaylists}
       />
+
       {curPlaylist.id === "" ? (
         <>
           <FilterBar
             playlists={playlists}
             setFilterPlaylists={setFilterPlaylists}
+          />
+          <PlaylistEdit
+            open={openEdit}
+            setOpen={setOpenEdit}
+            curPlaylist={selectPlaylist}
+            updateInfo={updatePlaylists}
+            headers={userContext?.headers}
+            updateImage={updatePlaylistImage}
           />
           <div className="playlist_browse">
             {filterPlaylists.map((playlist, index) => {
@@ -232,7 +379,12 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
                     className="playlist_select"
                     ref={lastPlaylistElementRef}
                     key={index}
-                    onClick={() => setCurPlaylist(playlist)}
+                    onClick={() => handlePlaylistClick(playlist)}
+                    onContextMenu={(e) => {
+                      handleContextMenu(e);
+                      setSelectPlaylist(playlist);
+                    }}
+                    style={{ cursor: "context-menu" }}
                   >
                     {playlist.images[0] ? (
                       <img
@@ -258,6 +410,36 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
                         ? playlist.description
                         : "By " + playlist.owner.display_name}
                     </h4>
+                    <Menu
+                      open={contextMenu !== null}
+                      onClose={handleClose}
+                      anchorReference="anchorPosition"
+                      anchorPosition={
+                        contextMenu !== null
+                          ? {
+                              top: contextMenu.mouseY,
+                              left: contextMenu.mouseX,
+                            }
+                          : undefined
+                      }
+                    >
+                      <MenuItem
+                        onClick={(event: React.MouseEvent) => {
+                          setOpenEdit(true);
+                          handleCloseContextMenu(event);
+                        }}
+                      >
+                        Edit Playlist
+                      </MenuItem>
+                      <MenuItem
+                        onClick={(event: React.MouseEvent) => {
+                          deletePlaylist();
+                          handleCloseContextMenu(event);
+                        }}
+                      >
+                        Delete Playlist
+                      </MenuItem>
+                    </Menu>
                   </div>
                 );
               } else {
@@ -265,7 +447,12 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
                   <div
                     className="playlist_select"
                     key={index}
-                    onClick={() => setCurPlaylist(playlist)}
+                    onClick={() => handlePlaylistClick(playlist)}
+                    onContextMenu={(e) => {
+                      handleContextMenu(e);
+                      setSelectPlaylist(playlist);
+                    }}
+                    style={{ cursor: "context-menu" }}
                   >
                     {playlist.images[0] ? (
                       <img
@@ -290,6 +477,36 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
                         ? playlist.description
                         : "By " + playlist.owner.display_name}
                     </h4>
+                    <Menu
+                      open={contextMenu !== null}
+                      onClose={handleClose}
+                      anchorReference="anchorPosition"
+                      anchorPosition={
+                        contextMenu !== null
+                          ? {
+                              top: contextMenu.mouseY,
+                              left: contextMenu.mouseX,
+                            }
+                          : undefined
+                      }
+                    >
+                      <MenuItem
+                        onClick={(event: React.MouseEvent) => {
+                          setOpenEdit(true);
+                          handleCloseContextMenu(event);
+                        }}
+                      >
+                        Edit Playlist
+                      </MenuItem>
+                      <MenuItem
+                        onClick={(event: React.MouseEvent) => {
+                          deletePlaylist();
+                          handleCloseContextMenu(event);
+                        }}
+                      >
+                        Delete Playlist
+                      </MenuItem>
+                    </Menu>
                   </div>
                 );
               }
@@ -316,8 +533,9 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
             open={openEdit}
             setOpen={setOpenEdit}
             curPlaylist={curPlaylist}
-            setCurPlaylist={setCurPlaylist}
+            updateInfo={updateCurPlaylist}
             headers={userContext?.headers}
+            updateImage={updateCurPlaylistImage}
           />
           <div className="playlist_view_container">
             <div

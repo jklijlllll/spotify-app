@@ -5,12 +5,16 @@ import useAuth from "./Hooks/useAuth";
 
 const code = new URLSearchParams(window.location.search).get("code");
 
-// TODO: add loading indicator
 function App() {
-  const token = useAuth(code!);
+  const { accessToken, loading } = useAuth(code!);
+
   return (
     <div className="App">
-      {token !== "" ? <Home token={token} /> : <Login />}
+      {accessToken !== "" ? (
+        <Home token={accessToken} />
+      ) : (
+        <Login loading={loading} />
+      )}
     </div>
   );
 }

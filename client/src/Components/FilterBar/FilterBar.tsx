@@ -3,7 +3,6 @@ import { FunctionComponent, useEffect, useState } from "react";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { PlaylistInterface } from "../../Types/SpotifyApi";
 
-// TODO: test filtering and loading
 const FilterBar: FunctionComponent<{
   playlists: PlaylistInterface[];
   setFilterPlaylists: React.Dispatch<React.SetStateAction<PlaylistInterface[]>>;
@@ -13,8 +12,8 @@ const FilterBar: FunctionComponent<{
     if (query === "") setFilterPlaylists(playlists);
     else
       setFilterPlaylists(
-        playlists.filter((playlist: { name: string | string[] }) =>
-          playlist.name.includes(query)
+        playlists.filter((playlist: { name: string }) =>
+          playlist.name.toLowerCase().includes(query.toLowerCase())
         )
       );
   }, [query, playlists, setFilterPlaylists]);

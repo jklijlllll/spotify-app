@@ -1,11 +1,27 @@
-import { Modal, Fade, Checkbox, Button, CircularProgress } from "@mui/material";
+import {
+  Modal,
+  Fade,
+  Checkbox,
+  Button,
+  CircularProgress,
+  ToggleButtonGroup,
+  ToggleButton,
+} from "@mui/material";
 import { FunctionComponent, useEffect, useState } from "react";
 import PlaylistName from "../Inputs/PlaylistName";
 import PlaylistDesc from "../Inputs/PlaylistDesc";
 import PlaylistImage from "../Inputs/PlaylistImage";
 import ErrorIcon from "@mui/icons-material/Error";
 import axios from "axios";
-import { ArtistInterface, TrackInterface } from "../../Types/SpotifyApi";
+import {
+  ArtistInterface,
+  PlaylistInterface,
+  TrackInterface,
+} from "../../Types/SpotifyApi";
+import PublicIcon from "@mui/icons-material/Public";
+import PublicOffIcon from "@mui/icons-material/PublicOff";
+import PersonIcon from "@mui/icons-material/Person";
+import GroupsIcon from "@mui/icons-material/Groups";
 
 const PlaylistAdd: FunctionComponent<{
   open: boolean;
@@ -14,10 +30,12 @@ const PlaylistAdd: FunctionComponent<{
   headers: any;
   useHistory: boolean;
   tracks: TrackInterface[];
-}> = ({ open, setOpen, userId, headers, useHistory, tracks }) => {
+  setPlaylists?: React.Dispatch<React.SetStateAction<PlaylistInterface[]>>;
+}> = ({ open, setOpen, userId, headers, useHistory, tracks, setPlaylists }) => {
   const [name, setName] = useState<string>("");
   const [desc, setDesc] = useState<string>("");
-  const [error, setError] = useState<string>("");
+  const [nameError, setNameError] = useState<string>("");
+  const [imageError, setImageError] = useState<string>("");
 
   const [imageURL, setImageURL] = useState<string>("");
   const [image64, setImage64] = useState<string>("");
@@ -26,9 +44,16 @@ const PlaylistAdd: FunctionComponent<{
   const [loadTracks, setLoadTracks] = useState<boolean>(false);
   const [loadImage, setLoadImage] = useState<boolean>(false);
 
+  const [sendCreate, setSendCreate] = useState<boolean>(false);
+  const [sendTracks, setSendTracks] = useState<boolean>(false);
+  const [sendImage, setSendImage] = useState<boolean>(false);
+
   const [playlistId, setPlaylistId] = useState<string>("");
 
   const [addTracks, setAddTracks] = useState<TrackInterface[]>(tracks);
+
+  const [isPublic, setIsPublic] = useState<boolean>(true);
+  const [isCollab, setIsCollab] = useState<boolean>(false);
 
   const maxTracks = 100;
 
@@ -41,7 +66,7 @@ const PlaylistAdd: FunctionComponent<{
 
   const updateTracks = () => {
     if (useHistory && localStorage.getItem("history")) {
-      setAddTracks(JSON.parse(localStorage.getItem("history")!));
+      setAddTracks(JSON.parse(localStorage.getItem("history")!).reverse());
       let oldSelect = selectedTracks;
       if (addTracks.length === maxTracks) oldSelect.shift();
 
@@ -74,25 +99,39 @@ const PlaylistAdd: FunctionComponent<{
   };
 
   const handleSubmit = () => {
-    if (name === "") return;
+    if (name === "") {
+      setNameError("Playlist name is required");
+      return;
+    }
     setLoadCreate(true);
     if (selectedTracks.filter((value) => value === true).length !== 0)
       setLoadTracks(true);
     if (image64 !== "") setLoadImage(true);
   };
 
+  // TODO: add public and collaborative options
   useEffect(() => {
-    if (loadCreate === false || userId === "") return;
+    if (!loadCreate || sendCreate || userId === "") return;
 
+    setSendCreate(true);
     axios
       .post(
         `https://api.spotify.com/v1/users/${userId}/playlists`,
-        { name: name, description: desc },
+        {
+          name: name,
+          description: desc,
+          public: isPublic,
+          collaborative: isCollab,
+        },
         { headers: headers }
       )
       .then((response) => {
         setLoadCreate(false);
         setPlaylistId(response.data.id);
+        if (setPlaylists)
+          setPlaylists((playlists) => {
+            return [response.data, ...playlists];
+          });
         if (loadTracks === false && loadImage === false) {
           setOpen(false);
         }
@@ -100,16 +139,36 @@ const PlaylistAdd: FunctionComponent<{
       .catch((error) => {
         console.log(error);
       });
-  }, [loadCreate, desc, headers, loadImage, loadTracks, name, setOpen, userId]);
+    setName("");
+    setDesc("");
+    setIsPublic(true);
+    setIsCollab(false);
+  }, [
+    loadCreate,
+    desc,
+    headers,
+    loadImage,
+    loadTracks,
+    name,
+    setOpen,
+    userId,
+    isCollab,
+    isPublic,
+    setPlaylists,
+    sendCreate,
+  ]);
 
   useEffect(() => {
-    if (playlistId === "") return;
+    if (playlistId === "" || !loadTracks || sendTracks) return;
 
+    setSendTracks(true);
     let uris = [];
 
+    let trackNum = 0;
     for (let i = 0; i < addTracks.length; i++) {
       if (selectedTracks[i]) {
         uris.push(addTracks[i].uri);
+        trackNum++;
       }
     }
 
@@ -120,18 +179,37 @@ const PlaylistAdd: FunctionComponent<{
         { headers: headers }
       )
       .then((response) => {
+        if (setPlaylists)
+          setPlaylists((playlists) => {
+            playlists[
+              playlists.findIndex((p) => p.id === playlistId)
+            ].tracks.total += trackNum;
+            return playlists;
+          });
         setLoadTracks(false);
         setOpen(false);
       })
       .catch((error) => {
         console.log(error);
       });
-  }, [playlistId, addTracks, headers, selectedTracks, setOpen]);
+
+    setSelectedTracks(new Array(addTracks.length).fill(!useHistory));
+  }, [
+    playlistId,
+    addTracks,
+    headers,
+    selectedTracks,
+    setOpen,
+    setPlaylists,
+    useHistory,
+    loadTracks,
+    sendTracks,
+  ]);
 
   useEffect(() => {
-    if (playlistId === "" || loadImage === false) return;
-    console.log("add");
+    if (playlistId === "" || !loadImage || sendImage || image64 === "") return;
 
+    setSendImage(true);
     axios
       .put(
         `https://api.spotify.com/v1/playlists/${playlistId}/images`,
@@ -144,13 +222,37 @@ const PlaylistAdd: FunctionComponent<{
         }
       )
       .then((response) => {
+        if (setPlaylists)
+          setPlaylists((playlists) => {
+            playlists[
+              playlists.findIndex((p) => p.id === playlistId)
+            ].images.push({ height: null, width: null, url: imageURL });
+            return [...playlists];
+          });
         setLoadImage(false);
         setOpen(false);
       })
       .catch((error) => {
         console.log(error);
       });
-  }, [playlistId, headers, image64, loadImage, setOpen]);
+
+    removeImage();
+  }, [
+    playlistId,
+    headers,
+    image64,
+    loadImage,
+    setOpen,
+    setPlaylists,
+    imageURL,
+    sendImage,
+  ]);
+
+  useEffect(() => {
+    setSendCreate(false);
+    setSendTracks(false);
+    setSendImage(false);
+  }, [open]);
 
   return (
     <>
@@ -188,19 +290,23 @@ const PlaylistAdd: FunctionComponent<{
                 removeImage={removeImage}
                 width={192}
                 height={192}
+                setError={setImageError}
               />
-              {error === "" ? (
+              {nameError === "" && imageError === "" ? (
                 <></>
               ) : (
                 <div className="playlist_add_error_container">
                   <ErrorIcon fontSize="small" />
-                  <h4 className="playlist_add_error_text">{error}</h4>
+                  <div className="playlist_add_error_flex">
+                    <h4 className="playlist_add_error_text">{nameError}</h4>
+                    <h4 className="playlist_add_error_text">{imageError}</h4>
+                  </div>
                 </div>
               )}
               <PlaylistName
                 name={name}
                 setName={setName}
-                setError={setError}
+                setError={setNameError}
                 style={{
                   color: "white",
                   backgroundColor: "gray",
@@ -226,6 +332,101 @@ const PlaylistAdd: FunctionComponent<{
                   },
                 }}
               />
+              <div className="playlist_edit_toggles">
+                <ToggleButtonGroup
+                  value={isPublic}
+                  onChange={(
+                    event: React.MouseEvent<HTMLElement>,
+                    newValue: boolean
+                  ) => {
+                    setIsPublic(newValue);
+                  }}
+                  exclusive
+                  sx={{ paddingRight: "5px" }}
+                >
+                  <ToggleButton
+                    value={false}
+                    sx={{
+                      backgroundColor: "white",
+                      "&:hover": {
+                        backgroundColor: "green",
+                      },
+                      "&.Mui-selected": {
+                        backgroundColor: "green",
+                      },
+                      "&.Mui-selected:hover": {
+                        backgroundColor: "green",
+                      },
+                    }}
+                  >
+                    <PublicOffIcon />
+                  </ToggleButton>
+                  <ToggleButton
+                    value={true}
+                    sx={{
+                      backgroundColor: "white",
+                      "&:hover": {
+                        backgroundColor: "green",
+                      },
+                      "&.Mui-selected": {
+                        backgroundColor: "green",
+                      },
+                      "&.Mui-selected:hover": {
+                        backgroundColor: "green",
+                      },
+                    }}
+                  >
+                    <PublicIcon />
+                  </ToggleButton>
+                </ToggleButtonGroup>
+                <ToggleButtonGroup
+                  disabled={isPublic}
+                  value={isPublic ? false : isCollab}
+                  onChange={(
+                    event: React.MouseEvent<HTMLElement>,
+                    newValue: boolean
+                  ) => {
+                    setIsCollab(newValue);
+                  }}
+                  exclusive
+                  sx={{ paddingLeft: "5px" }}
+                >
+                  <ToggleButton
+                    value={false}
+                    sx={{
+                      backgroundColor: "white",
+                      "&:hover": {
+                        backgroundColor: "green",
+                      },
+                      "&.Mui-selected": {
+                        backgroundColor: "green",
+                      },
+                      "&.Mui-selected:hover": {
+                        backgroundColor: "green",
+                      },
+                    }}
+                  >
+                    <PersonIcon />
+                  </ToggleButton>
+                  <ToggleButton
+                    value={true}
+                    sx={{
+                      backgroundColor: "white",
+                      "&:hover": {
+                        backgroundColor: "green",
+                      },
+                      "&.Mui-selected": {
+                        backgroundColor: "green",
+                      },
+                      "&.Mui-selected:hover": {
+                        backgroundColor: "green",
+                      },
+                    }}
+                  >
+                    <GroupsIcon />
+                  </ToggleButton>
+                </ToggleButtonGroup>
+              </div>
               <div className="playlist_add_tracks_container">
                 {addTracks.map((track, key) => (
                   <div className="playlist_add_track" key={key}>

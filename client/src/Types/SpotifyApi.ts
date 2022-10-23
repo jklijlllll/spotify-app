@@ -12,8 +12,8 @@ export interface PlaylistInterface {
     id: string;
     images: {
         url: string;
-        height: number;
-        width: number;
+        height: number | null;
+        width: number | null;
     }[];
     name: string;
     owner: {

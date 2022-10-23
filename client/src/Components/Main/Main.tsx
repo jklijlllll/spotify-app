@@ -1,10 +1,8 @@
-import { FunctionComponent, useState } from "react";
+import { FunctionComponent } from "react";
 import Recommendation from "../Recommendation";
-import SearchBar from "../SearchBar";
 import { CurrentComponent } from "../../Pages/Home/Home";
 import Playlist from "../Playlist";
 
-// TODO: overlay options
 const Main: FunctionComponent<{
   navCollapse: boolean;
   curComp: CurrentComponent;
@@ -20,9 +18,7 @@ const Main: FunctionComponent<{
         }}
       >
         {curComp === CurrentComponent.Recommendations ? (
-          <>
-            <Recommendation update={update[CurrentComponent.Recommendations]} />
-          </>
+          <Recommendation update={update[CurrentComponent.Recommendations]} />
         ) : (
           <Playlist update={update[CurrentComponent.Playlists]} />
         )}

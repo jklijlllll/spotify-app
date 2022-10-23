@@ -44,7 +44,7 @@ const WebPlayback: FunctionComponent<{
 }> = ({ current_track, setTrack, setActive, setDeviceId }) => {
   const [player, setPlayer] = useState<any>(undefined);
   const [is_paused, setPaused] = useState<boolean>(true);
-  const [volume, setVolume] = useState<number>(50);
+  const [volume, setVolume] = useState<number>(25);
   const [position, setPosition] = useState<number>(0);
   const [duration, setDuration] = useState<number>(0);
   const [updateTime, setUpdateTime] = useState<number>(0);
@@ -149,8 +149,9 @@ const WebPlayback: FunctionComponent<{
   }, [userContext?.deviceId, transferPlayback]);
 
   useEffect(() => {
-    if (userContext === null || userContext.is_active || player === undefined)
+    if (userContext === null || !userContext.is_active || player === undefined)
       return;
+
     player.setVolume(volume / 100);
     const volumeInterval = setInterval(() => {
       player.getVolume().then((volume: any) => {
@@ -170,6 +171,7 @@ const WebPlayback: FunctionComponent<{
 
   useEffect(() => {
     if (!userContext?.is_active || current_track === null) return;
+    console.log(current_track);
 
     if (
       sessionStorage.getItem("current_track") === null ||
@@ -178,7 +180,7 @@ const WebPlayback: FunctionComponent<{
     ) {
       axios
         .get("https://api.spotify.com/v1/me/tracks/contains", {
-          params: { ids: current_track.uri.replace("spotify:track:", "") },
+          params: { ids: current_track.id },
           headers: userContext?.headers,
         })
         .then((response) => {
@@ -258,9 +260,9 @@ const WebPlayback: FunctionComponent<{
             }}
             max={duration}
             value={position}
-            onChange={(newValue: any) => {
-              player.seek(newValue).then(() => {
-                setPosition(newValue);
+            onChange={(event: any) => {
+              player.seek(event.target.value).then(() => {
+                setPosition(event.target.value);
                 setUpdateTime(performance.now());
               });
             }}
@@ -339,8 +341,8 @@ const WebPlayback: FunctionComponent<{
                       }}
                       orientation="vertical"
                       value={volume}
-                      onChange={(newValue: any) => {
-                        setVolume(newValue);
+                      onChange={(event: any) => {
+                        setVolume(event.target.value);
                       }}
                       valueLabelDisplay="auto"
                     />

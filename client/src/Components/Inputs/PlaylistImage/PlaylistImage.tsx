@@ -13,6 +13,7 @@ const PlaylistImage: FunctionComponent<{
   removeImage: () => void;
   width: number;
   height: number;
+  setError: React.Dispatch<React.SetStateAction<string>>;
 }> = ({
   setImageURL,
   setImage64,
@@ -21,24 +22,27 @@ const PlaylistImage: FunctionComponent<{
   removeImage,
   width,
   height,
+  setError,
 }) => {
   const fileInput = useRef<HTMLInputElement>(null);
   const [isHovered, setIsHovered] = useState<boolean>(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const menuOpen = Boolean(anchorEl);
+
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
   const handleClose = () => {
     setAnchorEl(null);
   };
+
+  const maxFileSize = 4194304; // 4MB
   return (
     <div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className="playlist_edit_cover"
     >
-      {/* TODO: limit file size */}
       <input
         hidden
         id="image_upload"
@@ -47,6 +51,11 @@ const PlaylistImage: FunctionComponent<{
         ref={fileInput}
         onChange={(e) => {
           if (e.target.files === null) return;
+          if (e.target.files[0].size > maxFileSize) {
+            setError("Playlist image size must be less than 4MB");
+            return;
+          }
+          setError("");
           setImageURL(URL.createObjectURL(e.target.files[0]));
           let reader = new FileReader();
           reader.readAsDataURL(e.target.files[0]);

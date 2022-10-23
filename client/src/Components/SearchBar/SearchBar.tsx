@@ -4,7 +4,6 @@ import SearchIcon from "@mui/icons-material/Search";
 import axios from "axios";
 import { TrackInterface } from "../../Types/SpotifyApi";
 
-// TODO: refactor for both playlist and recommendation
 const SearchBar: FunctionComponent<{
   searchInput: string;
   setSearchInput: React.Dispatch<React.SetStateAction<string>>;
@@ -43,13 +42,16 @@ const SearchBar: FunctionComponent<{
         console.log(error);
       });
   };
+
   return (
     <>
       <TextField
         sx={{
           width: width,
           height: height,
-          ".MuiFilledInput-root": { backgroundColor: "white" },
+          ".MuiFilledInput-root": {
+            backgroundColor: "white",
+          },
         }}
         label="Search"
         variant="filled"
@@ -63,6 +65,9 @@ const SearchBar: FunctionComponent<{
               <SearchIcon />
             </InputAdornment>
           ),
+        }}
+        SelectProps={{
+          native: true,
         }}
         onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
           if (event.key === "Enter") sendSearch();

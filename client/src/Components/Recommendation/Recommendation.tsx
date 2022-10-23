@@ -20,7 +20,6 @@ import { ArtistInterface, TrackInterface } from "../../Types/SpotifyApi";
 // TODO: add loading indicator for recommended tracks
 // TODO: improve UI
 // TODO: add scrolling and load on type (axios cancel token)
-// TODO: add recommendations to playlist
 const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
   const userContext = useContext(UserContext);
   const [artistOptions, setArtistOptions] = useState<
@@ -260,6 +259,24 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
     setNumSeeds(newNumSeeds);
   }, [curSeeds]);
 
+  const [searchResultsOpen, setSearchResultsOpen] = useState<boolean>(true);
+  const handleScroll = () => {
+    const position = window.scrollY;
+    if (position === 0) {
+      setSearchResultsOpen(true);
+    } else {
+      setSearchResultsOpen(false);
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
   useEffect(() => {
     if (sessionStorage.getItem("genre_seeds") === null) {
       axios
@@ -387,7 +404,10 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
 
   return (
     <>
-      <div className="search_container">
+      <div
+        className="search_container"
+        onClick={() => setSearchResultsOpen(true)}
+      >
         <SearchBar
           searchInput={searchInput}
           setSearchInput={setSearchInput}
@@ -397,8 +417,10 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
           width={"600px"}
           limit={5}
         />
-        <div className="search_results_container">
-          {searchResults.map((result, key) => (
+      </div>
+      <div className="search_results_container">
+        {searchResultsOpen ? (
+          searchResults.map((result, key) => (
             <div
               key={key}
               className="search_result"
@@ -420,10 +442,15 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
               />
               <h4 className="search_result_text">{result.name}</h4>
             </div>
-          ))}
-        </div>
+          ))
+        ) : (
+          <></>
+        )}
       </div>
-      <div className="recommendation_container">
+      <div
+        className="recommendation_container"
+        onClick={() => setSearchResultsOpen(false)}
+      >
         <h1 className="recommendation_title">Recommendations</h1>
         {errorMsg === "" ? (
           <></>

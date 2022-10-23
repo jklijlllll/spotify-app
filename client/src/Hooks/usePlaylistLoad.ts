@@ -2,26 +2,34 @@ import axios, { Canceler } from "axios";
 import { useEffect, useState, useMemo } from "react"
 import { PlaylistInterface} from "../Types/SpotifyApi";
 
-export default function usePlaylistLoad(offset: number, limit: number, headers: any, userId: string, curPlaylist: PlaylistInterface, update: number, snapshot_id?: string) {
+export default function usePlaylistLoad(setPlaylists: React.Dispatch<React.SetStateAction<PlaylistInterface[]>>, offset: number, limit: number, headers: any, userId: string, curPlaylist: PlaylistInterface, update: number, snapshot_id?: string) {
 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<boolean>(false);
-  const [playlists, setPlaylists] = useState<PlaylistInterface[]>([]);
   const [tracks, setTracks] = useState<any[]>([]);
   const [hasMore, setHasMore] = useState<boolean>(false);
+  const [refresh, setRefresh] = useState<number>(0);
 
   const url = useMemo(() => {
     return curPlaylist.id !== "" ? `https://api.spotify.com/v1/playlists/${curPlaylist.id}/tracks`:`https://api.spotify.com/v1/me/playlists`;
   },[curPlaylist.id])
 
   // TODO: add liked song info
+  // TODO: add loading indicator for tracks
   // TODO: update tracks.tracks => tracks (Playlist.tsx)
+
+
   useEffect(() => {
     setPlaylists([])
     setTracks([]);
-  }, [update])
-
+    setLoading(true);
+    setError(false);
+    setHasMore(true);
+    setRefresh(refresh => refresh + 1);
+  }, [update, setPlaylists])
+ 
   useEffect(() => {
+    if (curPlaylist.id === "") return;
     if (snapshot_id && snapshot_id === "") return; 
     
     setTracks([]);
@@ -30,11 +38,11 @@ export default function usePlaylistLoad(offset: number, limit: number, headers: 
     setLoading(true);
     setError(false);
     setHasMore(true);
-  },[curPlaylist, snapshot_id])
+  },[curPlaylist.id, snapshot_id, setPlaylists])
 
   useEffect(() => {
-
     if (userId === "") return;
+    if (!loading && !hasMore) return;
     setLoading(true);
     setError(false);
     let cancel: Canceler;
@@ -67,9 +75,10 @@ export default function usePlaylistLoad(offset: number, limit: number, headers: 
     })
 
     return () => cancel();
-  },[offset, curPlaylist, userId, headers, limit, url])
+    // eslint-disable-next-line
+  },[offset, curPlaylist, userId, headers, limit, url, setPlaylists, refresh])
 
-  
 
-  return {loading, error, playlists, tracks, hasMore}
+  return {loading, error, tracks, hasMore}
 }
+

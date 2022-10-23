@@ -6,7 +6,6 @@ import QueueMusicIcon from "@mui/icons-material/QueueMusic";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { CurrentComponent } from "../../Pages/Home/Home";
 
-// TODO: add logout functionality
 const NavBar: FunctionComponent<{
   navCollapse: boolean;
   setNavCollapse: React.Dispatch<React.SetStateAction<boolean>>;
@@ -64,7 +63,12 @@ const NavBar: FunctionComponent<{
                 }}
               />
             </div>
-            <div className="sidebar_item_last">
+            <div
+              className="sidebar_item_last"
+              onClick={() => {
+                dispatchEvent(new Event("logout"));
+              }}
+            >
               <LogoutIcon
                 fontSize="large"
                 sx={{
@@ -148,7 +152,12 @@ const NavBar: FunctionComponent<{
             <div className="sidebar_group_title_container">
               <h4 className="sidebar_group_title">Authorization</h4>
             </div>
-            <div className="sidebar_item_last">
+            <div
+              className="sidebar_item_last"
+              onClick={() => {
+                dispatchEvent(new Event("logout"));
+              }}
+            >
               <LogoutIcon
                 fontSize="large"
                 sx={{

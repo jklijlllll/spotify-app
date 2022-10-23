@@ -3,29 +3,50 @@ import axios from "axios";
 
 export default function useAuth(code: string) {
     const [accessToken, setAccessToken] = useState("");
-    const [refreshToken, setRefreshToken] = useState();
-    const [expiresAt, setExpiresAt] = useState<number>();
+    const [refreshToken, setRefreshToken] = useState("");
+    const [expiresAt, setExpiresAt] = useState<number>(0);
+    const [loading, setLoading] = useState<boolean>(true);
     
     useEffect(() => {
 
-        const localExpiresAt = JSON.parse(localStorage.getItem("expiresAt")!);
-        if (localExpiresAt) {
-            if(Date.now() >= localExpiresAt) return;
-            setExpiresAt(localExpiresAt);
+        if (localStorage.getItem("expiresAt") !== null) {
+            const localExpiresAt = JSON.parse(localStorage.getItem("expiresAt")!) ;
+            if(Date.now() >= localExpiresAt) {
+                setLoading(false);
+                return;
+            }
+            setExpiresAt(JSON.parse(localExpiresAt));
         }
 
-        const localAccessToken = JSON.parse(localStorage.getItem("accessToken")!);
-        if (localAccessToken) {
-            setAccessToken(localAccessToken);
+   
+        if (localStorage.getItem("accessToken") !== null) {
+            setAccessToken(JSON.parse(localStorage.getItem("accessToken")!));
         }
 
-        const localRefreshToken = JSON.parse(localStorage.getItem("refreshToken")!);
-        if (localRefreshToken) {
-            setRefreshToken(localRefreshToken);
+         
+        if (localStorage.getItem("refreshToken") !== null) {
+            setRefreshToken(JSON.parse(localStorage.getItem("refreshToken")!));
         }
-
+        
+        setLoading(false);
     }, [])
 
+    const logOut = () => {
+        localStorage.removeItem("expiresAt");
+        localStorage.removeItem("accessToken");
+        localStorage.removeItem("refreshToken");
+        setAccessToken("");
+        setRefreshToken("");
+        setExpiresAt(0);
+    }
+
+    useEffect(() => {
+        window.addEventListener("logout", logOut);
+
+        return () => {
+            window.removeEventListener("logout", logOut);
+        }
+    },[])
 
     useEffect(() => {
         
@@ -36,6 +57,7 @@ export default function useAuth(code: string) {
                 setAccessToken(res.data.accessToken);
                 setRefreshToken(res.data.refreshToken);
                 setExpiresAt(Date.now() + ((res.data.expiresIn - 60) * 1000));  
+                setLoading(false);
                 
                 localStorage.setItem("accessToken", JSON.stringify(res.data.accessToken));
                 localStorage.setItem("refreshToken", JSON.stringify(res.data.refreshToken));
@@ -77,5 +99,5 @@ export default function useAuth(code: string) {
       }, [refreshToken, expiresAt])
 
 
-    return accessToken;
+    return {accessToken, loading};
 }
