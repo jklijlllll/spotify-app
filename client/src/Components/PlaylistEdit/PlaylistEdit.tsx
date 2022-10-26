@@ -126,7 +126,7 @@ const PlaylistEdit: FunctionComponent<{
   };
 
   useEffect(() => {
-    if (open || curPlaylist.id === "") return;
+    if (!open || curPlaylist.id === "") return;
 
     axios
       .get(`https://api.spotify.com/v1/playlists/${curPlaylist.id}/images`, {

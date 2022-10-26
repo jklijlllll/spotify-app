@@ -71,7 +71,7 @@ const Home: FunctionComponent<{ token: string }> = ({ token }) => {
   // TODO: allow player to work on refresh, localstorage (playlist track options updates current_track like status)
   // TODO: only provide context where necessary
   // TODO: refractor common api calls into global functions
-  // TODO: store past recommended/played songs (used for finding adding new songs to playlist)
+
   return (
     <UserContext.Provider value={userContext}>
       <div className="app_container">

@@ -1,4 +1,4 @@
-import { Button, Slider, ToggleButton } from "@mui/material";
+import { Button, CircularProgress, Slider, ToggleButton } from "@mui/material";
 import axios from "axios";
 import React, {
   FunctionComponent,
@@ -17,7 +17,6 @@ import useHistory from "../../Hooks/useHistory";
 import SearchBar from "../SearchBar";
 import { ArtistInterface, TrackInterface } from "../../Types/SpotifyApi";
 
-// TODO: add loading indicator for recommended tracks
 // TODO: improve UI
 // TODO: add scrolling and load on type (axios cancel token)
 const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
@@ -331,43 +330,25 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
     }),
   };
 
+  const [loading, setLoading] = useState<boolean>(false);
+
   const handleSubmit = () => {
     if (numSeeds === 0) {
-      // TODO: add error display, <= 5 seeds
+      setErrorMsg("Select at least one artist, genre, or track");
       return;
     }
 
-    // TODO: change seed param handling
+    let seed_artists = `seed_artists=${curSeeds["artist"].value
+      .map((entry: { label: string; value: string }) => entry.value)
+      .join(", ")}`;
 
-    let seed_artists = "";
+    let seed_genres = `seed_genres=${curSeeds["genre"].value
+      .map((entry: { label: string; value: string }) => entry.value)
+      .join(", ")}`;
 
-    if (curSeeds["artist"].value.length < 0) {
-      return;
-    } else {
-      seed_artists = `seed_artists=${curSeeds["artist"].value
-        .map((entry: { label: string; value: string }) => entry.value)
-        .join(", ")}`;
-    }
-
-    let seed_genres = "";
-
-    if (curSeeds["genre"].value.length < 0) {
-      return;
-    } else {
-      seed_genres = `seed_genres=${curSeeds["genre"].value
-        .map((entry: { label: string; value: string }) => entry.value)
-        .join(", ")}`;
-    }
-
-    let seed_tracks = "";
-
-    if (curSeeds["track"].value.length < 0) {
-      return;
-    } else {
-      seed_tracks = `seed_tracks=${curSeeds["track"].value
-        .map((entry: { label: string; value: string }) => entry.value)
-        .join(", ")}`;
-    }
+    let seed_tracks = `seed_tracks=${curSeeds["track"].value
+      .map((entry: { label: string; value: string }) => entry.value)
+      .join(", ")}`;
 
     let min: string[] = [];
     let max: string[] = [];
@@ -389,6 +370,7 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
     const maxString = max.join("&");
     const targetString = target.join("&");
 
+    setLoading(true);
     axios
       .get(
         `https://api.spotify.com/v1/recommendations?${seed_artists}&${seed_genres}&${seed_tracks}&${minString}&${maxString}&${targetString}`,
@@ -396,7 +378,11 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
           headers: userContext?.headers,
         }
       )
-      .then((response) => setRecInfo(response.data.tracks));
+      .then((response) => {
+        setRecInfo(response.data.tracks);
+        setLoading(false);
+      })
+      .catch((error) => setLoading(false));
   };
 
   const [searchInput, setSearchInput] = useState<string>("");
@@ -639,32 +625,36 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
         </Button>
 
         <div className="recommended_tracks_container">
-          {recInfo.map((track, key) => (
-            <div
-              className="track_container"
-              onClick={() => {
-                if (userContext?.is_active) {
-                  startPlayback({
-                    device_id: userContext.deviceId,
-                    position_ms: 0,
-                    headers: userContext.headers,
-                    uris: [track.uri],
-                  });
-                }
-              }}
-              key={key}
-            >
-              <img src={track.album.images[2].url} alt="song cover" />
-              <div className="track_info_container">
-                <div className="track_info_title">{track.name} </div>
-                <div className="track_info_name">
-                  {track.artists
-                    .map((artist: ArtistInterface) => artist.name)
-                    .join(", ")}
+          {loading ? (
+            <CircularProgress style={{ height: "300px", width: "300px" }} />
+          ) : (
+            recInfo.map((track, key) => (
+              <div
+                className="track_container"
+                onClick={() => {
+                  if (userContext?.is_active) {
+                    startPlayback({
+                      device_id: userContext.deviceId,
+                      position_ms: 0,
+                      headers: userContext.headers,
+                      uris: [track.uri],
+                    });
+                  }
+                }}
+                key={key}
+              >
+                <img src={track.album.images[2].url} alt="song cover" />
+                <div className="track_info_container">
+                  <div className="track_info_title">{track.name} </div>
+                  <div className="track_info_name">
+                    {track.artists
+                      .map((artist: ArtistInterface) => artist.name)
+                      .join(", ")}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
 
         {recInfo.length === 0 ? (

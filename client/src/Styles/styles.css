@@ -301,6 +301,7 @@ a:active { text-decoration: none; }
   width: 80%;
   flex-wrap: wrap;
   gap: 10px;
+  margin-top: 10px;
 }
 
 .track_container {

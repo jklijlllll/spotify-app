@@ -26,6 +26,8 @@ import {
   TrackInterface,
   ArtistInterface,
 } from "../../Types/SpotifyApi";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 
 const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
   const emptyPlaylist = useMemo(() => {
@@ -77,6 +79,8 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
 
   const [snapshot_id, setSnapShotId] = useState<string>("");
 
+  const [liked, setLiked] = useState<boolean[]>([]);
+
   const { loading, error, tracks, hasMore } = usePlaylistLoad(
     setPlaylists,
     offset,
@@ -85,8 +89,34 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
     userContext?.userProfile !== null ? userContext!.userProfile.id : "",
     curPlaylist,
     update,
+    setLiked,
     snapshot_id
   );
+
+  const likeTrack = (index: number, id: string) => {
+    axios
+      .put(
+        "https://api.spotify.com/v1/me/tracks",
+        { ids: [id] },
+        { headers: userContext?.headers }
+      )
+      .then((response) =>
+        setLiked([...liked.slice(0, index), true, ...liked.slice(index + 1)])
+      )
+      .catch((error) => console.log(error));
+  };
+
+  const unLikeTrack = (index: number, id: string) => {
+    axios
+      .delete("https://api.spotify.com/v1/me/tracks", {
+        params: { ids: id },
+        headers: userContext?.headers,
+      })
+      .then((response) =>
+        setLiked([...liked.slice(0, index), false, ...liked.slice(index + 1)])
+      )
+      .catch((error) => console.log(error));
+  };
 
   useEffect(() => {
     setCurPlaylist(emptyPlaylist);
@@ -108,8 +138,6 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
     },
     [loading, hasMore]
   );
-
-  // TODO: fix menu open errors
 
   let dateFormat: Intl.DateTimeFormatOptions = {
     year: "numeric",
@@ -199,7 +227,7 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
       .then((response) => {
         console.log(response.data);
         setCurPlaylist(response.data);
-        // TODO: do not change if same playlist
+
         setSnapShotId("");
       })
       .catch((error) => {
@@ -207,8 +235,6 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
         setCurPlaylist(emptyPlaylist);
       });
   }, [snapshot_id, curPlaylist.id, userContext?.headers, emptyPlaylist]);
-
-  // TODO: test no playlist view
 
   const [contextMenu, setContextMenu] = useState<{
     mouseX: number;
@@ -579,15 +605,16 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
               </div>
             </div>
             {tracks.map((track, index) => {
+              if (menuOpen.length < index + 1) return <div key={index}></div>;
               if (tracks.length === index + 1) {
                 return (
                   <div
                     className="playlist_item_flex"
                     ref={lastPlaylistElementRef}
+                    key={index}
                   >
                     <div
                       className="playlist_item_container"
-                      key={index}
                       onClick={() => {
                         startPlayback({
                           device_id: userContext?.deviceId!,
@@ -628,6 +655,25 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
                       <div className="playlist_item_duration">
                         {milliToMinandSec(track.track.duration_ms)}
                       </div>
+                    </div>
+                    <div className="like_icon_container">
+                      {liked[index] ? (
+                        <IconButton
+                          onClick={() => {
+                            unLikeTrack(index, track.track.id);
+                          }}
+                        >
+                          <FavoriteIcon fontSize="large" />
+                        </IconButton>
+                      ) : (
+                        <IconButton
+                          onClick={() => {
+                            likeTrack(index, track.track.id);
+                          }}
+                        >
+                          <FavoriteBorderIcon fontSize="large" />
+                        </IconButton>
+                      )}
                     </div>
                     <IconButton
                       sx={{
@@ -688,10 +734,9 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
                 );
               } else {
                 return (
-                  <div className="playlist_item_flex">
+                  <div className="playlist_item_flex" key={index}>
                     <div
                       className="playlist_item_container"
-                      key={index}
                       onClick={() => {
                         startPlayback({
                           device_id: userContext?.deviceId!,
@@ -732,6 +777,25 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
                       <div className="playlist_item_duration">
                         {milliToMinandSec(track.track.duration_ms)}
                       </div>
+                    </div>
+                    <div className="like_icon_container">
+                      {liked[index] ? (
+                        <IconButton
+                          onClick={() => {
+                            unLikeTrack(index, track.track.id);
+                          }}
+                        >
+                          <FavoriteIcon fontSize="large" />
+                        </IconButton>
+                      ) : (
+                        <IconButton
+                          onClick={() => {
+                            likeTrack(index, track.track.id);
+                          }}
+                        >
+                          <FavoriteBorderIcon fontSize="large" />
+                        </IconButton>
+                      )}
                     </div>
                     <IconButton
                       sx={{
@@ -856,7 +920,10 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
                 )}
               </div>
             ) : (
-              <></>
+              <>
+                <div>{loading && "Loading..."}</div>
+                <div>{error && "Error"}</div>
+              </>
             )}
           </div>
         </>

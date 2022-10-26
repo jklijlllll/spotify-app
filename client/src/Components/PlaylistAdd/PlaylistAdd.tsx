@@ -109,7 +109,6 @@ const PlaylistAdd: FunctionComponent<{
     if (image64 !== "") setLoadImage(true);
   };
 
-  // TODO: add public and collaborative options
   useEffect(() => {
     if (!loadCreate || sendCreate || userId === "") return;
 

@@ -10,7 +10,13 @@ import SkipNextIcon from "@mui/icons-material/SkipNext";
 import SkipPreviousIcon from "@mui/icons-material/SkipPrevious";
 import PauseIcon from "@mui/icons-material/Pause";
 import axios from "axios";
-import { Fade, IconButton, Slider, Tooltip } from "@mui/material";
+import {
+  Fade,
+  IconButton,
+  Slider,
+  Tooltip,
+  CircularProgress,
+} from "@mui/material";
 import VolumeUpIcon from "@mui/icons-material/VolumeUp";
 import VolumeDownIcon from "@mui/icons-material/VolumeDown";
 import VolumeOffIcon from "@mui/icons-material/VolumeOff";
@@ -34,8 +40,6 @@ import {
 // TODO: add device control
 // TODO: save player state and volume on reload
 // TODO: retain volume on playback transfer
-// TODO: fix player position when song is loading but not playing
-// TODO: add loading indicator
 const WebPlayback: FunctionComponent<{
   current_track: TrackInterface | null;
   setTrack: React.Dispatch<React.SetStateAction<TrackInterface | null>>;
@@ -407,7 +411,18 @@ const WebPlayback: FunctionComponent<{
       </>
     );
   } else {
-    return <></>;
+    return (
+      <div className="webplayback_info" style={{ justifyContent: "center" }}>
+        <CircularProgress
+          style={{
+            height: "54px",
+            width: "54px",
+            paddingTop: "5px",
+            paddingBottom: "5px",
+          }}
+        />
+      </div>
+    );
   }
 };
 
