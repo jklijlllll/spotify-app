@@ -1,5 +1,6 @@
 import { CircularProgress } from "@mui/material";
 import { FunctionComponent } from "react";
+import "./Login.css";
 
 const AUTH_URL =
   "https://accounts.spotify.com/authorize?client_id=" +

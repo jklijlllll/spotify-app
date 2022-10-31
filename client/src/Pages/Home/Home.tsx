@@ -5,6 +5,7 @@ import Main from "../../Components/Main";
 import NavBar from "../../Components/NavBar";
 import WebPlayback from "../../Components/WebPlayback";
 import { TrackInterface, UserInterface } from "../../Types/SpotifyApi";
+import "./Home.css";
 
 interface UserContextInterface {
   token: string;

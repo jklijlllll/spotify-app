@@ -2,6 +2,7 @@ import { InputAdornment, TextField } from "@mui/material";
 import { FunctionComponent, useEffect, useState } from "react";
 import FilterListIcon from "@mui/icons-material/FilterList";
 import { PlaylistInterface } from "../../Types/SpotifyApi";
+import "./FilterBar.css";
 
 const FilterBar: FunctionComponent<{
   playlists: PlaylistInterface[];

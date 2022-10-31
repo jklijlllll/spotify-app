@@ -2,6 +2,7 @@ import { FunctionComponent } from "react";
 import Recommendation from "../Recommendation";
 import { CurrentComponent } from "../../Pages/Home/Home";
 import Playlist from "../Playlist";
+import "./Main.css";
 
 const Main: FunctionComponent<{
   navCollapse: boolean;

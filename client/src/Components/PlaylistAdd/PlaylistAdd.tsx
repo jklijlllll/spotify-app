@@ -22,6 +22,7 @@ import PublicIcon from "@mui/icons-material/Public";
 import PublicOffIcon from "@mui/icons-material/PublicOff";
 import PersonIcon from "@mui/icons-material/Person";
 import GroupsIcon from "@mui/icons-material/Groups";
+import "./PlaylistAdd.css";
 
 const PlaylistAdd: FunctionComponent<{
   open: boolean;

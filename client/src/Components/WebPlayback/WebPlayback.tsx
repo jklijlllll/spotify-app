@@ -36,6 +36,7 @@ import {
   TrackInterface,
   WebPlaybackState,
 } from "../../Types/SpotifyApi";
+import "./WebPlayback.css";
 
 // TODO: add device control
 // TODO: save player state and volume on reload

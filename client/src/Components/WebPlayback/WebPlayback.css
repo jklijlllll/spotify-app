@@ -1,0 +1,120 @@
+.webplayback_info {
+    display: flex;
+    background-color: white;
+}
+
+.now_playing_cover {
+    width: 64px;
+}
+
+.song_info {
+    display: flex;
+    width: calc(50% - 160px);
+    flex-grow: 0;
+    flex-shrink: 0;
+    align-items: center;
+    overflow: hidden;
+}
+
+.now_playing_info {
+    display: flex;
+    flex-direction: column;
+    margin-left: 10px;
+    max-width: calc(100% - 94px);
+    margin-right: 20px;
+}
+
+.now_playing_name {
+    font-size: 28px;
+    text-align: left;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.now_playing_artist {
+    font-size: 20px;
+    color: grey;
+    text-align: left;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.like_icon_container {
+    height: 64px;
+    width: 64px;
+    flex-grow: 0;
+    flex-shrink: 0;
+}
+
+.playback_controls {
+    height: 64px;
+    width: 192px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.MuiIconButton-root {
+    height: 64px !important;
+    width: 64px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.device_controls {
+    width: calc(50% - 96px);
+}
+
+.device_controls_container {
+    display: flex;
+    align-items: center;
+    flex-direction: row-reverse;
+    overflow: hidden;
+}
+
+.volume_control {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 150px;
+    width: 20px;
+    background-color: transparent;
+}
+
+.MuiTooltip-tooltip {
+    background-color: white !important;
+    border-radius: 2px !important;
+}
+
+.MuiTooltip-arrow {
+    color: white !important;
+}
+
+.position_container {
+    width: 100%;
+    margin-bottom: -20px;
+}
+
+.devices_container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.devices_title {
+    font-size: 18px;
+    color: black;
+    line-height: 0;
+}
+
+.device {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    gap: 5px;
+}

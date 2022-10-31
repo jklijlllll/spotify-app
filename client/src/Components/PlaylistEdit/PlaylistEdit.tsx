@@ -19,6 +19,7 @@ import PlaylistName from "../Inputs/PlaylistName";
 import PlaylistDesc from "../Inputs/PlaylistDesc";
 import PlaylistImage from "../Inputs/PlaylistImage";
 import { PlaylistInterface } from "../../Types/SpotifyApi";
+import "./PlaylistEdit.css";
 
 const PlaylistEdit: FunctionComponent<{
   open: boolean;

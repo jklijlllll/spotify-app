@@ -28,6 +28,7 @@ import {
 } from "../../Types/SpotifyApi";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import "./Playlist.css";
 
 const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
   const emptyPlaylist = useMemo(() => {

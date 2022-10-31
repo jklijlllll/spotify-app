@@ -16,6 +16,7 @@ import PlaylistAdd from "../PlaylistAdd";
 import useHistory from "../../Hooks/useHistory";
 import SearchBar from "../SearchBar";
 import { ArtistInterface, TrackInterface } from "../../Types/SpotifyApi";
+import "./Recommendation.css";
 
 // TODO: improve UI
 // TODO: add scrolling and load on type (axios cancel token)

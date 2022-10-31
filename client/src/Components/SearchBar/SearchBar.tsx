@@ -3,6 +3,7 @@ import { FunctionComponent } from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import axios from "axios";
 import { TrackInterface } from "../../Types/SpotifyApi";
+import "./SearchBar.css";
 
 const SearchBar: FunctionComponent<{
   searchInput: string;
