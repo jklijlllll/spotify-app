@@ -1,12 +1,14 @@
-import { FunctionComponent } from "react";
+import { FunctionComponent, useState, useRef, useCallback } from "react";
 import KeyboardTabIcon from "@mui/icons-material/KeyboardTab";
-import { IconButton } from "@mui/material";
+import { IconButton, Popover } from "@mui/material";
 import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
 import QueueMusicIcon from "@mui/icons-material/QueueMusic";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { CurrentComponent } from "../../Pages/Home/Home";
 import HistoryIcon from "@mui/icons-material/History";
 import "./NavBar.css";
+import { ArtistInterface, TrackInterface } from "../../Types/SpotifyApi";
+import useHistoryLoad from "../../Hooks/useHistoryLoad";
 
 const NavBar: FunctionComponent<{
   navCollapse: boolean;
@@ -61,6 +63,42 @@ const NavBar: FunctionComponent<{
       }}
     />
   );
+
+  const [historyAnchor, setHistoryAnchor] = useState<HTMLDivElement | null>(
+    null
+  );
+
+  const historyOpen = Boolean(historyAnchor);
+  const historyId = historyOpen ? "simple-popover" : undefined;
+
+  const handleHistoryClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    setHistoryAnchor(event.currentTarget);
+  };
+
+  const handleHistoryClose = () => {
+    setHistoryAnchor(null);
+  };
+
+  const [offset, setOffset] = useState<number>(0);
+  const limit = 5;
+
+  const { loading, hasMore, tracks } = useHistoryLoad(offset, limit, false);
+
+  const observer = useRef<IntersectionObserver>();
+  const lastTrackElementRef = useCallback(
+    (node: HTMLDivElement) => {
+      if (loading) return;
+      if (observer.current) observer.current.disconnect();
+      observer.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          setOffset((prevOffset) => prevOffset + limit);
+        }
+      });
+      if (node) observer.current.observe(node);
+    },
+    [loading, hasMore]
+  );
+
   return (
     <>
       <div className="sidebar_content">
@@ -102,7 +140,7 @@ const NavBar: FunctionComponent<{
         </div>
 
         <div
-          className="sidebar_item_last"
+          className="sidebar_item"
           onClick={() => {
             setCurComp(CurrentComponent.Playlists);
             update[CurrentComponent.Playlists]((value: number) => value + 1);
@@ -116,10 +154,77 @@ const NavBar: FunctionComponent<{
           )}
         </div>
 
-        <div className="sidebar_item_last">
+        <div
+          className="sidebar_item_last"
+          aria-describedby={historyId}
+          onClick={handleHistoryClick}
+        >
           {historyIcon}
           {navCollapse ? <></> : <h4 className="sidebar_item_text">History</h4>}
         </div>
+
+        <Popover
+          id={historyId}
+          open={historyOpen}
+          anchorEl={historyAnchor}
+          onClose={handleHistoryClose}
+          anchorOrigin={{
+            vertical: "center",
+            horizontal: "right",
+          }}
+          transformOrigin={{
+            vertical: "center",
+            horizontal: "left",
+          }}
+        >
+          <div className="sidebar_history_container">
+            {tracks.map((track: TrackInterface, key: number) => {
+              if (tracks.length === key + 1) {
+                return (
+                  <div
+                    className="sidebar_history_track"
+                    ref={lastTrackElementRef}
+                    key={key}
+                  >
+                    <h4 className="sidebar_history_number">{key + 1}</h4>
+                    <img
+                      className="sidebar_history_image"
+                      src={track.album.images[2].url}
+                      alt="album cover"
+                    />
+                    <div className="sidebar_history_info">
+                      <h4 className="sidebar_history_title">{track.name}</h4>
+                      <h4 className="sidebar_history_artists">
+                        {track.artists
+                          .map((artist: ArtistInterface) => artist.name)
+                          .join(", ")}
+                      </h4>
+                    </div>
+                  </div>
+                );
+              } else {
+                return (
+                  <div className="sidebar_history_track" key={key}>
+                    <h4 className="sidebar_history_number">{key + 1}</h4>
+                    <img
+                      className="sidebar_history_image"
+                      src={track.album.images[2].url}
+                      alt="album cover"
+                    />
+                    <div className="sidebar_history_info">
+                      <h4 className="sidebar_history_title">{track.name}</h4>
+                      <h4 className="sidebar_history_artists">
+                        {track.artists
+                          .map((artist: ArtistInterface) => artist.name)
+                          .join(", ")}
+                      </h4>
+                    </div>
+                  </div>
+                );
+              }
+            })}
+          </div>
+        </Popover>
 
         {navCollapse ? (
           <></>
@@ -138,6 +243,7 @@ const NavBar: FunctionComponent<{
           {navCollapse ? <></> : <h4 className="sidebar_item_text">Logout</h4>}
         </div>
       </div>
+
       <div className="sidebar_collapser">
         <IconButton
           onClick={() => {
