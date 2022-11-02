@@ -6,10 +6,10 @@ export default function useHistoryLoad(
   limit: number,
   replace: boolean
 ) {
-  const [loading, setLoading] = useState<boolean>(false);
-  const [tracks, setTracks] = useState<TrackInterface[]>([]);
+  const [histLoading, setLoading] = useState<boolean>(false);
+  const [histTracks, setTracks] = useState<TrackInterface[]>([]);
 
-  const [hasMore, setHasMore] = useState<boolean>(false);
+  const [histHasMore, setHasMore] = useState<boolean>(false);
 
   const [historyTracks, setHistoryTracks] = useState<TrackInterface[]>([]);
 
@@ -36,12 +36,12 @@ export default function useHistoryLoad(
   }, []);
 
   useEffect(() => {
-    setTracks(historyTracks.slice(0, tracks.length));
+    setTracks(historyTracks.slice(0, histTracks.length));
     // eslint-disable-next-line
   }, [historyTracks]);
 
   useEffect(() => {
-    if (loading) return;
+    if (histLoading) return;
     setLoading(true);
 
     let endIndex;
@@ -63,7 +63,7 @@ export default function useHistoryLoad(
     }
     setLoading(false);
     // eslint-disable-next-line
-  }, [offset]);
+  }, [offset, historyTracks]);
 
-  return { loading, hasMore, tracks };
+  return { histLoading, histHasMore, histTracks };
 }

@@ -282,3 +282,12 @@
     overflow: hidden;
     white-space: nowrap;
 }
+
+.playlist_view_history_buttons {
+    display: flex;
+    padding-left: 32px;
+    padding-right: 32px;
+    width: 100%;
+    gap: 100px;
+    justify-content: center;
+}

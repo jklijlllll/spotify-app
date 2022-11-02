@@ -6,7 +6,6 @@ interface HistoryParameters {
   recommended_tracks?: TrackInterface[];
 }
 
-// TODO: change view history handling for playlists
 export default function useHistory({
   current_track,
   recommended_tracks,

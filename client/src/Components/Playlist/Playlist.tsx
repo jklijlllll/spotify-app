@@ -29,6 +29,7 @@ import {
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import "./Playlist.css";
+import useHistoryLoad from "../../Hooks/useHistoryLoad";
 
 const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
   const emptyPlaylist = useMemo(() => {
@@ -183,27 +184,23 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
 
   const [searchTracks, setSearchTracks] = useState<TrackInterface[]>([]);
   const [query, setQuery] = useState<string>("");
-  const [historyTracks, setHistoryTracks] = useState<TrackInterface[]>([]);
 
-  useEffect(() => {
-    setQuery("");
-  }, [curPlaylist]);
+  const [histOffset, setHistOffset] = useState<number>(0);
+  const histLimit = 5;
 
-  const updateTracks = () => {
-    if (localStorage.getItem("history")) {
-      setHistoryTracks(JSON.parse(localStorage.getItem("history")!).reverse());
-    }
+  const { histHasMore, histTracks } = useHistoryLoad(
+    histOffset,
+    histLimit,
+    true
+  );
+
+  const prevHistTracks = () => {
+    setHistOffset(histOffset - histLimit);
   };
 
-  useEffect(() => {
-    updateTracks();
-
-    window.addEventListener("changed", updateTracks);
-
-    return () => {
-      window.removeEventListener("changed", updateTracks);
-    };
-  }, []);
+  const nextHistTracks = () => {
+    setHistOffset(histOffset + histLimit);
+  };
 
   const addTrack = (track: TrackInterface) => {
     axios
@@ -852,7 +849,7 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
 
                 {searchTracks.length === 0 ? (
                   <div className="playlist_view_add_tracks">
-                    {historyTracks.map((track: TrackInterface, key: number) => (
+                    {histTracks.map((track: TrackInterface, key: number) => (
                       <div className="playlist_view_add_track" key={key}>
                         <img
                           className="playlist_view_add_cover"
@@ -883,6 +880,29 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
                         </Button>
                       </div>
                     ))}
+                    <div className="playlist_view_history_buttons">
+                      <Button
+                        variant="contained"
+                        sx={{
+                          width: "100px",
+                          visibility:
+                            histOffset < histLimit ? "hidden" : "visible",
+                        }}
+                        onClick={prevHistTracks}
+                      >
+                        Previous
+                      </Button>
+                      <Button
+                        variant="contained"
+                        sx={{
+                          width: "100px",
+                          visibility: histHasMore ? "visible" : "hidden",
+                        }}
+                        onClick={nextHistTracks}
+                      >
+                        Next
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <div className="playlist_view_add_tracks">

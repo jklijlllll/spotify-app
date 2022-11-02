@@ -82,21 +82,25 @@ const NavBar: FunctionComponent<{
   const [offset, setOffset] = useState<number>(0);
   const limit = 5;
 
-  const { loading, hasMore, tracks } = useHistoryLoad(offset, limit, false);
+  const { histLoading, histHasMore, histTracks } = useHistoryLoad(
+    offset,
+    limit,
+    false
+  );
 
   const observer = useRef<IntersectionObserver>();
   const lastTrackElementRef = useCallback(
     (node: HTMLDivElement) => {
-      if (loading) return;
+      if (histLoading) return;
       if (observer.current) observer.current.disconnect();
       observer.current = new IntersectionObserver((entries) => {
-        if (entries[0].isIntersecting && hasMore) {
+        if (entries[0].isIntersecting && histHasMore) {
           setOffset((prevOffset) => prevOffset + limit);
         }
       });
       if (node) observer.current.observe(node);
     },
-    [loading, hasMore]
+    [histLoading, histHasMore]
   );
 
   return (
@@ -178,8 +182,8 @@ const NavBar: FunctionComponent<{
           }}
         >
           <div className="sidebar_history_container">
-            {tracks.map((track: TrackInterface, key: number) => {
-              if (tracks.length === key + 1) {
+            {histTracks.map((track: TrackInterface, key: number) => {
+              if (histTracks.length === key + 1) {
                 return (
                   <div
                     className="sidebar_history_track"
