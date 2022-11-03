@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { TrackInterface } from "../Types/SpotifyApi";
 
+// TODO: add playback on click
 export default function useHistoryLoad(
   offset: number,
   limit: number,
@@ -12,22 +13,28 @@ export default function useHistoryLoad(
   const [histHasMore, setHasMore] = useState<boolean>(false);
 
   const [historyTracks, setHistoryTracks] = useState<TrackInterface[]>([]);
+  const [replaceAll, setReplaceAll] = useState<boolean>(false);
 
   const maxLength = historyTracks.length;
 
-  const updateTracks = () => {
+  const updateTracks = (event?: any) => {
     if (localStorage.getItem("history")) {
       setHistoryTracks(JSON.parse(localStorage.getItem("history")!).reverse());
+      if (event) setReplaceAll(event.detail.replaceAll);
     }
   };
 
   useEffect(() => {
     updateTracks();
 
-    window.addEventListener("changed", updateTracks);
+    window.addEventListener("changed", function (e) {
+      updateTracks(e);
+    });
 
     return () => {
-      window.removeEventListener("changed", updateTracks);
+      window.removeEventListener("changed", function (e) {
+        updateTracks(e);
+      });
     };
   }, []);
 
@@ -59,7 +66,10 @@ export default function useHistoryLoad(
     if (replace) {
       setTracks(newTracks);
     } else {
-      setTracks((t) => [...t, ...newTracks]);
+      if (replaceAll) {
+        setTracks(historyTracks.slice(0, endIndex));
+        setReplaceAll(false);
+      } else setTracks((t) => [...t, ...newTracks]);
     }
     setLoading(false);
     // eslint-disable-next-line

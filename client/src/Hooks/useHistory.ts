@@ -13,7 +13,9 @@ export default function useHistory({
   const maxLength = 100;
 
   const addToHistory = useCallback((track: TrackInterface) => {
-    const changedEvent = new Event("changed");
+    const changedEvent = new CustomEvent("changed", {
+      detail: { replaceAll: false },
+    });
     let localHistory: TrackInterface[] = localStorage.getItem("history")
       ? JSON.parse(localStorage.getItem("history")!)
       : [];
@@ -23,6 +25,24 @@ export default function useHistory({
     if (localHistory.length + 1 > maxLength) localHistory.shift();
 
     localHistory.push(track);
+    localStorage.setItem("history", JSON.stringify(localHistory));
+    dispatchEvent(changedEvent);
+  }, []);
+
+  const addTracksToHistory = useCallback((tracks: TrackInterface[]) => {
+    const changedEvent = new CustomEvent("changed", {
+      detail: { replaceAll: true },
+    });
+    let localHistory: TrackInterface[] = localStorage.getItem("history")
+      ? JSON.parse(localStorage.getItem("history")!)
+      : [];
+
+    for (const track of tracks) {
+      if (!localHistory.find((t) => t.uri === track.uri)) {
+        if (localHistory.length + 1 > maxLength) localHistory.shift();
+        localHistory.push(track);
+      }
+    }
     localStorage.setItem("history", JSON.stringify(localHistory));
     dispatchEvent(changedEvent);
   }, []);
@@ -37,28 +57,12 @@ export default function useHistory({
   }, [current_track, addToHistory]);
 
   useEffect(() => {
-    if (!localStorage.getItem("history"))
-      localStorage.setItem("history", JSON.stringify([]));
-
-    let localHistory = localStorage.getItem("history")
-      ? JSON.parse(localStorage.getItem("history")!)
-      : [];
-
     if (
       recommended_tracks &&
       typeof recommended_tracks !== "undefined" &&
       recommended_tracks.length > 0
     ) {
-      let newTracks = localHistory;
-
-      for (let i = 0; i < recommended_tracks.length; i++) {
-        newTracks = newTracks.filter(
-          (track: TrackInterface) => track.uri !== recommended_tracks[i].uri
-        );
-        newTracks.push(recommended_tracks[i]);
-      }
-
-      addToHistory(newTracks);
+      addTracksToHistory(recommended_tracks);
     }
-  }, [recommended_tracks, addToHistory]);
+  }, [recommended_tracks, addTracksToHistory]);
 }

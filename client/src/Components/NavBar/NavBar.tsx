@@ -191,6 +191,7 @@ const NavBar: FunctionComponent<{
                     key={key}
                   >
                     <h4 className="sidebar_history_number">{key + 1}</h4>
+
                     <img
                       className="sidebar_history_image"
                       src={track.album.images[2].url}

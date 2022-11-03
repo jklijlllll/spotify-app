@@ -148,6 +148,18 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
   }, []);
 
   const [curValues, setCurValues] = useState(values);
+
+  const sortedValues = Object.keys(values).sort(function (a, b) {
+    const aVal = curValues[a];
+    const bVal = curValues[b];
+
+    if (aVal.enabled === true && bVal.enabled === false) return -1;
+    if (aVal.enabled === false && bVal.enabled === true) return 1;
+
+    if (a > b) return 1;
+    else return -1;
+  });
+
   const [recInfo, setRecInfo] = useState<TrackInterface[]>([]);
 
   useHistory({ recommended_tracks: recInfo });
@@ -305,9 +317,10 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
     }
   }, [update, userContext?.headers]);
 
+  // TODO: add select loading
   const selectStyle = {
     container: () => ({
-      width: "30%",
+      width: "100%",
     }),
     control: () => ({
       fontSize: "24px",
@@ -320,14 +333,13 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
     }),
     menu: () => ({
       fontSize: "20px",
+      color: "black",
     }),
     menuList: (provided: any) => ({
       ...provided,
       maxHeight: "200px",
       border: "1px solid black",
-    }),
-    option: (provided: any) => ({
-      ...provided,
+      backgroundColor: "white",
     }),
   };
 
@@ -444,186 +456,208 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
         ) : (
           <h4 className="recommendation_error_text">{errorMsg}</h4>
         )}
-        <div className="seed_select_container">
-          <Select
-            placeholder={"Select Artists"}
-            isMulti
-            styles={selectStyle}
-            value={curSeeds["artist"].value}
-            onChange={(newValue: any) => {
-              if (
-                numSeeds - curSeeds["artist"].value.length + newValue.length <=
-                maxSeeds
-              ) {
-                setErrorMsg("");
-                handleSeedChange("artist", newValue);
-              } else {
-                setErrorMsg(
-                  "Only five artists, genres and tracks combined may be selected"
-                );
-              }
-            }}
-            options={artistOptions}
-            inputValue={artistInput}
-            onInputChange={(newValue) => {
-              setArtistInput(newValue);
-            }}
-            onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
-              if (event.key === "Enter") {
-                sendSearch("artist");
-                event.preventDefault();
-              }
-            }}
-          />
-          <Select
-            placeholder={"Select Genres"}
-            isMulti
-            styles={selectStyle}
-            value={curSeeds["genre"].value}
-            onChange={(newValue: any) => {
-              if (
-                numSeeds - curSeeds["genre"].value.length + newValue.length <=
-                maxSeeds
-              ) {
-                setErrorMsg("");
-                handleSeedChange("genre", newValue);
-              } else {
-                setErrorMsg(
-                  "Only five artists, genres and tracks combined may be selected"
-                );
-              }
-            }}
-            options={genreOptions}
-            inputValue={genreInput}
-            onInputChange={(newValue) => {
-              setGenreInput(newValue);
-            }}
-            onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
-              if (event.key === "Enter") {
-                sendSearch("genre");
-                event.preventDefault();
-              }
-            }}
-          />
-          <Select
-            placeholder={"Select Tracks"}
-            isMulti
-            styles={selectStyle}
-            value={curSeeds["track"].value}
-            onChange={(newValue: any) => {
-              if (
-                numSeeds - curSeeds["track"].value.length + newValue.length <=
-                maxSeeds
-              ) {
-                setErrorMsg("");
-                handleSeedChange("track", newValue);
-              } else {
-                setErrorMsg(
-                  "Only five artists, genres and tracks combined may be selected"
-                );
-              }
-            }}
-            options={trackOptions}
-            inputValue={trackInput}
-            onInputChange={(newValue) => {
-              setTrackInput(newValue);
-            }}
-            onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
-              if (event.key === "Enter") {
-                sendSearch("track");
-                event.preventDefault();
-              }
-            }}
-          />
-        </div>
-        <div className="top_slider_container">
-          {Object.keys(values)
-            .slice(0, Math.ceil(Object.keys(values).length) / 2)
-            .map((attribute, key) => (
-              <div className="slider_container" key={key}>
-                <h4 className="slider_title">{attribute}</h4>
-                <Slider
-                  sx={{
-                    '& input[type="range"]': {
-                      WebkitAppearance: "slider-vertical",
-                    },
-                    height: "150px",
-                  }}
-                  orientation="vertical"
-                  min={curValues[attribute].min}
-                  max={curValues[attribute].max}
-                  step={curValues[attribute].step}
-                  value={curValues[attribute].value}
-                  onChange={(event, newValue) => {
-                    handleChange(attribute, newValue);
-                  }}
-                  valueLabelDisplay="auto"
-                  disabled={!curValues[attribute].enabled}
-                />
-                <ToggleButton
-                  value="check"
-                  selected={curValues[attribute].enabled}
-                  onChange={() => toggleValue(attribute)}
-                  sx={{
-                    height: "30px",
-                    width: "30px",
-                  }}
-                >
-                  {curValues[attribute].enabled ? <CheckIcon /> : <ClearIcon />}
-                </ToggleButton>
-              </div>
-            ))}
-        </div>
+        <div className="recommendation_select">
+          <div className="seed_select_container">
+            <Select
+              placeholder={"Select Artists"}
+              isMulti
+              menuPosition="fixed"
+              styles={selectStyle}
+              value={curSeeds["artist"].value}
+              onChange={(newValue: any) => {
+                if (
+                  numSeeds -
+                    curSeeds["artist"].value.length +
+                    newValue.length <=
+                  maxSeeds
+                ) {
+                  setErrorMsg("");
+                  handleSeedChange("artist", newValue);
+                } else {
+                  setErrorMsg(
+                    "Only five artists, genres and tracks combined may be selected"
+                  );
+                }
+              }}
+              options={artistOptions}
+              inputValue={artistInput}
+              onInputChange={(newValue) => {
+                setArtistInput(newValue);
+              }}
+              onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
+                if (event.key === "Enter") {
+                  sendSearch("artist");
+                  event.preventDefault();
+                }
+              }}
+            />
+            <Select
+              placeholder={"Select Genres"}
+              isMulti
+              styles={selectStyle}
+              menuPosition="fixed"
+              value={curSeeds["genre"].value}
+              onChange={(newValue: any) => {
+                if (
+                  numSeeds - curSeeds["genre"].value.length + newValue.length <=
+                  maxSeeds
+                ) {
+                  setErrorMsg("");
+                  handleSeedChange("genre", newValue);
+                } else {
+                  setErrorMsg(
+                    "Only five artists, genres and tracks combined may be selected"
+                  );
+                }
+              }}
+              options={genreOptions}
+              inputValue={genreInput}
+              onInputChange={(newValue) => {
+                setGenreInput(newValue);
+              }}
+              onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
+                if (event.key === "Enter") {
+                  sendSearch("genre");
+                  event.preventDefault();
+                }
+              }}
+            />
+            <Select
+              placeholder={"Select Tracks"}
+              isMulti
+              styles={selectStyle}
+              menuPosition="fixed"
+              value={curSeeds["track"].value}
+              onChange={(newValue: any) => {
+                if (
+                  numSeeds - curSeeds["track"].value.length + newValue.length <=
+                  maxSeeds
+                ) {
+                  setErrorMsg("");
+                  handleSeedChange("track", newValue);
+                } else {
+                  setErrorMsg(
+                    "Only five artists, genres and tracks combined may be selected"
+                  );
+                }
+              }}
+              options={trackOptions}
+              inputValue={trackInput}
+              onInputChange={(newValue) => {
+                setTrackInput(newValue);
+              }}
+              onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
+                if (event.key === "Enter") {
+                  sendSearch("track");
+                  event.preventDefault();
+                }
+              }}
+            />
+          </div>
 
-        <div className="bottom_slider_container">
-          {Object.keys(values)
-            .slice(
-              Math.ceil(Object.keys(values).length) / 2,
-              Object.keys(values).length
-            )
-            .map((attribute, key) => (
-              <div className="slider_container" key={key}>
-                <h4 className="slider_title">{attribute}</h4>
-                <Slider
-                  sx={{
-                    '& input[type="range"]': {
-                      WebkitAppearance: "slider-vertical",
-                    },
-                    height: "150px",
-                  }}
-                  orientation="vertical"
-                  min={curValues[attribute].min}
-                  max={curValues[attribute].max}
-                  step={curValues[attribute].step}
-                  value={curValues[attribute].value}
-                  onChange={(event, newValue) =>
-                    handleChange(attribute, newValue)
-                  }
-                  valueLabelDisplay="auto"
-                  disabled={!curValues[attribute].enabled}
-                />
-                <ToggleButton
-                  value="check"
-                  selected={curValues[attribute].enabled}
-                  onChange={() => toggleValue(attribute)}
-                  sx={{
-                    height: "30px",
-                    width: "30px",
-                  }}
-                >
-                  {curValues[attribute].enabled ? <CheckIcon /> : <ClearIcon />}
-                </ToggleButton>
+          <div className="slider_container_vertical_align">
+            <div className="slider_container_flex">
+              <div className="slider_flex">
+                {sortedValues
+                  .slice(0, Math.ceil(Object.keys(values).length) / 2)
+                  .map((attribute, key) => (
+                    <div className="slider_container" key={key}>
+                      <div className="slider_header">
+                        <ToggleButton
+                          value="check"
+                          selected={curValues[attribute].enabled}
+                          onChange={() => toggleValue(attribute)}
+                          sx={{
+                            height: "30px",
+                            width: "30px",
+                          }}
+                        >
+                          {curValues[attribute].enabled ? (
+                            <CheckIcon />
+                          ) : (
+                            <ClearIcon />
+                          )}
+                        </ToggleButton>{" "}
+                        <h4 className="slider_title">{attribute}</h4>
+                      </div>
+                      <Slider
+                        sx={{
+                          width: "100%",
+                        }}
+                        min={curValues[attribute].min}
+                        max={curValues[attribute].max}
+                        step={curValues[attribute].step}
+                        value={curValues[attribute].value}
+                        onChange={(event, newValue) => {
+                          handleChange(attribute, newValue);
+                        }}
+                        valueLabelDisplay="auto"
+                        disabled={!curValues[attribute].enabled}
+                      />
+                    </div>
+                  ))}
               </div>
-            ))}
-        </div>
 
-        <Button
-          sx={{ marginBottom: recInfo.length === 0 ? "20px" : "0px" }}
-          variant="contained"
-          onClick={() => handleSubmit()}
-        >
-          Get Recommendations
-        </Button>
+              <div className="slider_flex">
+                {sortedValues
+                  .slice(
+                    Math.ceil(Object.keys(values).length) / 2,
+                    Object.keys(values).length
+                  )
+                  .map((attribute, key) => (
+                    <div className="slider_container" key={key}>
+                      <div className="slider_header">
+                        <ToggleButton
+                          value="check"
+                          selected={curValues[attribute].enabled}
+                          onChange={() => toggleValue(attribute)}
+                          sx={{
+                            height: "30px",
+                            width: "30px",
+                          }}
+                        >
+                          {curValues[attribute].enabled ? (
+                            <CheckIcon />
+                          ) : (
+                            <ClearIcon />
+                          )}
+                        </ToggleButton>{" "}
+                        <h4 className="slider_title">{attribute}</h4>
+                      </div>
+                      <Slider
+                        sx={{
+                          width: "100%",
+                        }}
+                        min={curValues[attribute].min}
+                        max={curValues[attribute].max}
+                        step={curValues[attribute].step}
+                        value={curValues[attribute].value}
+                        onChange={(event, newValue) => {
+                          handleChange(attribute, newValue);
+                        }}
+                        valueLabelDisplay="auto"
+                        disabled={!curValues[attribute].enabled}
+                      />
+                    </div>
+                  ))}
+              </div>
+            </div>
+            <div className="recommedation_button">
+              <Button
+                sx={{
+                  marginBottom: recInfo.length === 0 ? "20px" : "0px",
+                  width: "250px",
+                  height: "40px",
+                  marginTop: "20px",
+                }}
+                variant="contained"
+                onClick={() => handleSubmit()}
+              >
+                Get Recommendations
+              </Button>
+            </div>
+          </div>
+        </div>
 
         <div className="recommended_tracks_container">
           {loading ? (
