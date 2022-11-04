@@ -850,7 +850,20 @@ const Playlist: FunctionComponent<{ update: number }> = ({ update }) => {
                 {searchTracks.length === 0 ? (
                   <div className="playlist_view_add_tracks">
                     {histTracks.map((track: TrackInterface, key: number) => (
-                      <div className="playlist_view_add_track" key={key}>
+                      <div
+                        className="playlist_view_add_track"
+                        key={key}
+                        onClick={() => {
+                          if (userContext?.is_active) {
+                            startPlayback({
+                              device_id: userContext.deviceId,
+                              position_ms: 0,
+                              headers: userContext.headers,
+                              uris: [track.uri],
+                            });
+                          }
+                        }}
+                      >
                         <img
                           className="playlist_view_add_cover"
                           src={track.album.images[2].url}

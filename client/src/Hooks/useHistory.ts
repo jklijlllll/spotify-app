@@ -1,51 +1,118 @@
+import axios from "axios";
 import { useEffect, useCallback } from "react";
 import { TrackInterface } from "../Types/SpotifyApi";
 
 interface HistoryParameters {
   current_track?: TrackInterface | null;
   recommended_tracks?: TrackInterface[];
+  headers: any;
 }
 
 export default function useHistory({
   current_track,
   recommended_tracks,
+  headers,
 }: HistoryParameters): void {
   const maxLength = 100;
 
-  const addToHistory = useCallback((track: TrackInterface) => {
-    const changedEvent = new CustomEvent("changed", {
-      detail: { replaceAll: false },
-    });
-    let localHistory: TrackInterface[] = localStorage.getItem("history")
-      ? JSON.parse(localStorage.getItem("history")!)
-      : [];
-    localHistory = localHistory.filter(
-      (t: TrackInterface) => t.uri !== track.uri
-    );
-    if (localHistory.length + 1 > maxLength) localHistory.shift();
-
-    localHistory.push(track);
+  const pushToHistory = (
+    localHistory: TrackInterface[],
+    replaceAll: boolean
+  ) => {
     localStorage.setItem("history", JSON.stringify(localHistory));
-    dispatchEvent(changedEvent);
-  }, []);
-
-  const addTracksToHistory = useCallback((tracks: TrackInterface[]) => {
     const changedEvent = new CustomEvent("changed", {
-      detail: { replaceAll: true },
+      detail: { replaceAll: replaceAll },
     });
-    let localHistory: TrackInterface[] = localStorage.getItem("history")
-      ? JSON.parse(localStorage.getItem("history")!)
-      : [];
+    dispatchEvent(changedEvent);
+  };
 
-    for (const track of tracks) {
+  const addToHistory = useCallback(
+    (track: TrackInterface) => {
+      let replaceAll = false;
+      let localHistory: TrackInterface[] = localStorage.getItem("history")
+        ? JSON.parse(localStorage.getItem("history")!)
+        : [];
+
       if (!localHistory.find((t) => t.uri === track.uri)) {
-        if (localHistory.length + 1 > maxLength) localHistory.shift();
+        if (localHistory.length + 1 > maxLength) {
+          replaceAll = true;
+          localHistory.shift();
+        }
+
+        axios
+          .get("https://api.spotify.com/v1/audio-features", {
+            headers: headers,
+            params: { ids: track.id },
+          })
+          .then((response) => {
+            track.audio_features = response.data.audio_features[0];
+            localHistory.push(track);
+            pushToHistory(localHistory, replaceAll);
+          })
+          .catch((error) => console.log(error));
+      } else {
+        replaceAll = true;
+        localHistory.splice(
+          localHistory.findIndex((t) => t.uri === track.uri),
+          1
+        );
         localHistory.push(track);
+        pushToHistory(localHistory, replaceAll);
       }
-    }
-    localStorage.setItem("history", JSON.stringify(localHistory));
-    dispatchEvent(changedEvent);
-  }, []);
+    },
+    [headers]
+  );
+
+  const addTracksToHistory = useCallback(
+    (tracks: TrackInterface[]) => {
+      let replaceAll = false;
+
+      let localHistory: TrackInterface[] = localStorage.getItem("history")
+        ? JSON.parse(localStorage.getItem("history")!)
+        : [];
+
+      let newTracks = [];
+
+      for (const track of tracks) {
+        if (!localHistory.find((t) => t.uri === track.uri)) {
+          if (localHistory.length + 1 > maxLength) {
+            replaceAll = true;
+            localHistory.shift();
+          }
+          newTracks.push(track.id);
+          localHistory.push(track);
+        } else {
+          replaceAll = true;
+          localHistory.splice(
+            localHistory.findIndex((t) => t.uri === track.uri),
+            1
+          );
+          localHistory.push(track);
+        }
+      }
+
+      if (newTracks.length === 0) pushToHistory(localHistory, replaceAll);
+      else {
+        axios
+          .get("https://api.spotify.com/v1/audio-features", {
+            headers: headers,
+            params: { ids: newTracks.join(",") },
+          })
+          .then((response) => {
+            console.log(response.data.audio_features);
+            for (const af of response.data.audio_features) {
+              const index = localHistory.findIndex((t) => t.id === af.id);
+              let newTrack = localHistory[index];
+              newTrack.audio_features = af;
+              localHistory[index] = newTrack;
+            }
+            pushToHistory(localHistory, replaceAll);
+          })
+          .catch((error) => console.log(error));
+      }
+    },
+    [headers]
+  );
 
   useEffect(() => {
     if (!localStorage.getItem("history"))

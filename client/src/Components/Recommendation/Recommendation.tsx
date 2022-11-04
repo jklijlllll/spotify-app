@@ -162,7 +162,7 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
 
   const [recInfo, setRecInfo] = useState<TrackInterface[]>([]);
 
-  useHistory({ recommended_tracks: recInfo });
+  useHistory({ recommended_tracks: recInfo, headers: userContext?.headers });
 
   const [addOpen, setAddOpen] = useState<boolean>(false);
 

@@ -59,7 +59,7 @@ const WebPlayback: FunctionComponent<{
 
   const userContext = useContext(UserContext);
 
-  useHistory({ current_track: current_track });
+  useHistory({ current_track: current_track, headers: userContext?.headers });
 
   const getPosition = useCallback(
     (
@@ -176,7 +176,6 @@ const WebPlayback: FunctionComponent<{
 
   useEffect(() => {
     if (!userContext?.is_active || current_track === null) return;
-    console.log(current_track);
 
     if (
       sessionStorage.getItem("current_track") === null ||

@@ -1,4 +1,10 @@
-import { FunctionComponent, useState, useRef, useCallback } from "react";
+import {
+  FunctionComponent,
+  useState,
+  useRef,
+  useCallback,
+  useContext,
+} from "react";
 import KeyboardTabIcon from "@mui/icons-material/KeyboardTab";
 import { IconButton, Popover } from "@mui/material";
 import LibraryMusicIcon from "@mui/icons-material/LibraryMusic";
@@ -9,6 +15,8 @@ import HistoryIcon from "@mui/icons-material/History";
 import "./NavBar.css";
 import { ArtistInterface, TrackInterface } from "../../Types/SpotifyApi";
 import useHistoryLoad from "../../Hooks/useHistoryLoad";
+import { startPlayback } from "../../Functions/startPlayback";
+import { UserContext } from "../../Pages/Home/Home";
 
 const NavBar: FunctionComponent<{
   navCollapse: boolean;
@@ -16,6 +24,8 @@ const NavBar: FunctionComponent<{
   setCurComp: React.Dispatch<React.SetStateAction<CurrentComponent>>;
   update: React.Dispatch<React.SetStateAction<number>>[];
 }> = ({ navCollapse, setNavCollapse, setCurComp, update }) => {
+  const userContext = useContext(UserContext);
+
   const recommendationIcon = (
     <LibraryMusicIcon
       fontSize="large"
@@ -189,6 +199,16 @@ const NavBar: FunctionComponent<{
                     className="sidebar_history_track"
                     ref={lastTrackElementRef}
                     key={key}
+                    onClick={() => {
+                      if (userContext?.is_active) {
+                        startPlayback({
+                          device_id: userContext.deviceId,
+                          position_ms: 0,
+                          headers: userContext.headers,
+                          uris: [track.uri],
+                        });
+                      }
+                    }}
                   >
                     <h4 className="sidebar_history_number">{key + 1}</h4>
 
@@ -209,7 +229,20 @@ const NavBar: FunctionComponent<{
                 );
               } else {
                 return (
-                  <div className="sidebar_history_track" key={key}>
+                  <div
+                    className="sidebar_history_track"
+                    key={key}
+                    onClick={() => {
+                      if (userContext?.is_active) {
+                        startPlayback({
+                          device_id: userContext.deviceId,
+                          position_ms: 0,
+                          headers: userContext.headers,
+                          uris: [track.uri],
+                        });
+                      }
+                    }}
+                  >
                     <h4 className="sidebar_history_number">{key + 1}</h4>
                     <img
                       className="sidebar_history_image"

@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { TrackInterface } from "../Types/SpotifyApi";
 
-// TODO: add playback on click
 export default function useHistoryLoad(
   offset: number,
   limit: number,
@@ -49,6 +48,7 @@ export default function useHistoryLoad(
 
   useEffect(() => {
     if (histLoading) return;
+
     setLoading(true);
 
     let endIndex;
@@ -56,6 +56,11 @@ export default function useHistoryLoad(
     if (limit + offset >= maxLength) {
       endIndex = maxLength;
       setHasMore(false);
+      if (endIndex <= limit) {
+        setTracks(historyTracks.slice(0, endIndex));
+        setLoading(false);
+        return;
+      }
     } else {
       endIndex = limit + offset;
       setHasMore(true);
