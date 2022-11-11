@@ -214,6 +214,7 @@ export interface WebPlaybackState {
 }
 
 export interface AudioFeatures {
+  [index: string]: number | string;
   acousticness: number;
   analysis_url: string;
   danceability: number;

@@ -32,12 +32,15 @@ export default function useHistory({
       let localHistory: TrackInterface[] = localStorage.getItem("history")
         ? JSON.parse(localStorage.getItem("history")!)
         : [];
+      let newTrack = localHistory.find((t) => t.uri === track.uri);
 
-      if (!localHistory.find((t) => t.uri === track.uri)) {
+      if (!newTrack) {
         if (localHistory.length + 1 > maxLength) {
           replaceAll = true;
           localHistory.shift();
         }
+
+        newTrack = track;
 
         axios
           .get("https://api.spotify.com/v1/audio-features", {
@@ -45,19 +48,40 @@ export default function useHistory({
             params: { ids: track.id },
           })
           .then((response) => {
-            track.audio_features = response.data.audio_features[0];
+            newTrack!.audio_features = response.data.audio_features[0];
             localHistory.push(track);
+
             pushToHistory(localHistory, replaceAll);
           })
           .catch((error) => console.log(error));
       } else {
         replaceAll = true;
-        localHistory.splice(
-          localHistory.findIndex((t) => t.uri === track.uri),
-          1
-        );
-        localHistory.push(track);
-        pushToHistory(localHistory, replaceAll);
+
+        if (newTrack.audio_features) {
+          localHistory.splice(
+            localHistory.findIndex((t) => t.uri === track.uri),
+            1
+          );
+          localHistory.push(newTrack);
+          pushToHistory(localHistory, replaceAll);
+        } else {
+          axios
+            .get("https://api.spotify.com/v1/audio-features", {
+              headers: headers,
+              params: { ids: track.id },
+            })
+            .then((response) => {
+              newTrack!.audio_features = response.data.audio_features[0];
+              localHistory.splice(
+                localHistory.findIndex((t) => t.uri === track.uri),
+                1
+              );
+
+              localHistory.push(newTrack!);
+              pushToHistory(localHistory, replaceAll);
+            })
+            .catch((error) => console.log(error));
+        }
       }
     },
     [headers]
@@ -99,7 +123,6 @@ export default function useHistory({
             params: { ids: newTracks.join(",") },
           })
           .then((response) => {
-            console.log(response.data.audio_features);
             for (const af of response.data.audio_features) {
               const index = localHistory.findIndex((t) => t.id === af.id);
               let newTrack = localHistory[index];

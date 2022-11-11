@@ -41,6 +41,7 @@ import "./WebPlayback.css";
 // TODO: add device control
 // TODO: save player state and volume on reload
 // TODO: retain volume on playback transfer
+
 const WebPlayback: FunctionComponent<{
   current_track: TrackInterface | null;
   setTrack: React.Dispatch<React.SetStateAction<TrackInterface | null>>;

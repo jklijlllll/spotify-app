@@ -164,6 +164,37 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
 
   useHistory({ recommended_tracks: recInfo, headers: userContext?.headers });
 
+  const [historyTracks, setHistoryTracks] = useState<TrackInterface[]>([]);
+
+  const updateTracks = () => {
+    if (localStorage.getItem("history")) {
+      setHistoryTracks(JSON.parse(localStorage.getItem("history")!));
+    }
+  };
+
+  useEffect(() => {
+    updateTracks();
+
+    window.addEventListener("changed", updateTracks);
+
+    return () => {
+      window.removeEventListener("changed", updateTracks);
+    };
+    // eslint-disable-next-line
+  }, []);
+
+  const [closestTrack, setClosestTrack] = useState<TrackInterface | null>(null);
+
+  const getClosestTrack = (attribute: string, value: number) => {
+    const track = historyTracks.reduce(function (prev, curr) {
+      return Math.abs((curr.audio_features?.[attribute] as number) - value) <
+        Math.abs((prev.audio_features?.[attribute] as number) - value)
+        ? curr
+        : prev;
+    });
+
+    setClosestTrack(track);
+  };
   const [addOpen, setAddOpen] = useState<boolean>(false);
 
   useEffect(() => {
@@ -577,10 +608,11 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
                           ) : (
                             <ClearIcon />
                           )}
-                        </ToggleButton>{" "}
+                        </ToggleButton>
                         <h4 className="slider_title">{attribute}</h4>
                       </div>
                       <Slider
+                        disableSwap
                         sx={{
                           width: "100%",
                         }}
@@ -588,10 +620,56 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
                         max={curValues[attribute].max}
                         step={curValues[attribute].step}
                         value={curValues[attribute].value}
-                        onChange={(event, newValue) => {
+                        onChange={(event, newValue, activeThumb) => {
                           handleChange(attribute, newValue);
+                          getClosestTrack(
+                            attribute.toLowerCase(),
+                            typeof newValue === "number"
+                              ? newValue
+                              : newValue[activeThumb]
+                          );
                         }}
                         valueLabelDisplay="auto"
+                        valueLabelFormat={(value) =>
+                          historyTracks.length === 0 ||
+                          closestTrack === null ? (
+                            <div>{value}</div>
+                          ) : (
+                            <div className="track_overlay">
+                              <div className="track_overlay_container">
+                                <img
+                                  className="track_overlay_image"
+                                  alt="track cover"
+                                  src={closestTrack.album.images[2].url}
+                                ></img>
+                                <div className="track_overlay_info">
+                                  <h4 className="track_overlay_title">
+                                    {closestTrack.name}
+                                  </h4>
+                                  <h4 className="track_overlay_name">
+                                    {closestTrack.artists
+                                      .map(
+                                        (artist: ArtistInterface) => artist.name
+                                      )
+                                      .join(", ")}
+                                  </h4>
+                                  {closestTrack.audio_features ? (
+                                    <h4 className="track_overlay_attribute">
+                                      {attribute +
+                                        ": " +
+                                        closestTrack.audio_features[
+                                          attribute.toLowerCase()
+                                        ]}
+                                    </h4>
+                                  ) : (
+                                    <></>
+                                  )}
+                                </div>
+                              </div>
+                              <h1 className="track_overlay_value">{value}</h1>
+                            </div>
+                          )
+                        }
                         disabled={!curValues[attribute].enabled}
                       />
                     </div>
@@ -625,6 +703,7 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
                         <h4 className="slider_title">{attribute}</h4>
                       </div>
                       <Slider
+                        disableSwap
                         sx={{
                           width: "100%",
                         }}
@@ -632,10 +711,56 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
                         max={curValues[attribute].max}
                         step={curValues[attribute].step}
                         value={curValues[attribute].value}
-                        onChange={(event, newValue) => {
+                        onChange={(event, newValue, activeThumb) => {
                           handleChange(attribute, newValue);
+                          getClosestTrack(
+                            attribute.toLowerCase(),
+                            typeof newValue === "number"
+                              ? newValue
+                              : newValue[activeThumb]
+                          );
                         }}
                         valueLabelDisplay="auto"
+                        valueLabelFormat={(value) =>
+                          historyTracks.length === 0 ||
+                          closestTrack === null ? (
+                            <div>{value}</div>
+                          ) : (
+                            <div className="track_overlay">
+                              <div className="track_overlay_container">
+                                <img
+                                  className="track_overlay_image"
+                                  alt="track cover"
+                                  src={closestTrack.album.images[2].url}
+                                ></img>
+                                <div className="track_overlay_info">
+                                  <h4 className="track_overlay_title">
+                                    {closestTrack.name}
+                                  </h4>
+                                  <h4 className="track_overlay_name">
+                                    {closestTrack.artists
+                                      .map(
+                                        (artist: ArtistInterface) => artist.name
+                                      )
+                                      .join(", ")}
+                                  </h4>
+                                  {closestTrack.audio_features ? (
+                                    <h4 className="track_overlay_attribute">
+                                      {attribute +
+                                        ": " +
+                                        closestTrack.audio_features[
+                                          attribute.toLowerCase()
+                                        ]}
+                                    </h4>
+                                  ) : (
+                                    <></>
+                                  )}
+                                </div>
+                              </div>
+                              <h1 className="track_overlay_value">{value}</h1>
+                            </div>
+                          )
+                        }
                         disabled={!curValues[attribute].enabled}
                       />
                     </div>

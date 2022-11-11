@@ -121,3 +121,54 @@
     white-space: nowrap;
     width: 100%;
 }
+
+.track_overlay {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 300px;
+}
+
+.track_overlay_container {
+    display: flex;
+    width: 100%;
+}
+
+.track_overlay_image {
+    height: 64px;
+    width: 64px;
+    margin: 0;
+    padding: 5px 5px 0px 0px;
+}
+
+.track_overlay_info {
+    display: flex;
+    text-align: left;
+    flex-direction: column;
+    padding-top: 5px;
+    width: calc(100% - 74px);
+}
+
+.track_overlay_title {
+    font-size: 12px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    margin: 0;
+}
+
+.track_overlay_name {
+    font-size: 8px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    margin: 0;
+}
+
+.track_overlay_attribute {
+    font-size: 12px;
+}
+
+.track_overlay_value {
+    font-size: 16px;
+}
