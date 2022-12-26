@@ -6,6 +6,7 @@ export default function useAuth(code: string) {
     const [refreshToken, setRefreshToken] = useState("");
     const [expiresAt, setExpiresAt] = useState<number>(0);
     const [loading, setLoading] = useState<boolean>(true);
+    const [codeLoading, setCodeLoading] = useState<boolean>(false);
     
     useEffect(() => {
 
@@ -51,6 +52,7 @@ export default function useAuth(code: string) {
     useEffect(() => {
         
         if (code !== null) {
+            setCodeLoading(true);
             axios.post("http://localhost:5000/auth/login", {
                 code, 
             }).then (res => {
@@ -69,6 +71,12 @@ export default function useAuth(code: string) {
         }
         
     },[code])
+
+    useEffect(() => {
+        if (!codeLoading) return;
+        if (accessToken === "") return;
+        setCodeLoading(false);
+    },[codeLoading, accessToken])
 
     useEffect(() => {
         if (!refreshToken || !expiresAt) return
@@ -99,5 +107,5 @@ export default function useAuth(code: string) {
       }, [refreshToken, expiresAt])
 
 
-    return {accessToken, loading};
+    return {accessToken, loading, codeLoading};
 }

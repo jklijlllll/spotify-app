@@ -1,6 +1,7 @@
 .webplayback_info {
     display: flex;
-    background-color: white;
+    background-color: #212121;
+    color: white;
 }
 
 .now_playing_cover {
@@ -41,12 +42,7 @@
     white-space: nowrap;
 }
 
-.like_icon_container {
-    height: 64px;
-    width: 64px;
-    flex-grow: 0;
-    flex-shrink: 0;
-}
+
 
 .playback_controls {
     height: 64px;
@@ -56,13 +52,7 @@
     align-items: center;
 }
 
-.MuiIconButton-root {
-    height: 64px !important;
-    width: 64px !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+
 
 .device_controls {
     width: calc(50% - 96px);
@@ -85,15 +75,6 @@
     background-color: transparent;
 }
 
-.MuiTooltip-tooltip {
-    background-color: white !important;
-    border-radius: 2px !important;
-}
-
-.MuiTooltip-arrow {
-    color: white !important;
-}
-
 .position_container {
     width: 100%;
     margin-bottom: -20px;
@@ -104,11 +85,11 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    color: white
 }
 
 .devices_title {
     font-size: 18px;
-    color: black;
     line-height: 0;
 }
 

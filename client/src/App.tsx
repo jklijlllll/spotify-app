@@ -6,14 +6,13 @@ import useAuth from "./Hooks/useAuth";
 const code = new URLSearchParams(window.location.search).get("code");
 
 function App() {
-  const { accessToken, loading } = useAuth(code!);
-
+  const { accessToken, loading, codeLoading } = useAuth(code!);
   return (
     <div className="App">
       {accessToken !== "" ? (
         <Home token={accessToken} />
       ) : (
-        <Login loading={loading} />
+        <Login loading={loading || codeLoading} />
       )}
     </div>
   );

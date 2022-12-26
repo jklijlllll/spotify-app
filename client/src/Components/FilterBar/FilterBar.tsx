@@ -24,8 +24,6 @@ const FilterBar: FunctionComponent<{
         sx={{
           width: "30%",
           height: "60px",
-          marginBottom: "10px",
-          ".MuiFilledInput-root": { backgroundColor: "white" },
         }}
         label="Filter"
         variant="filled"
@@ -35,11 +33,21 @@ const FilterBar: FunctionComponent<{
           setQuery(event.target.value);
         }}
         InputProps={{
+          disableUnderline: true,
           startAdornment: (
             <InputAdornment position="start">
               <FilterListIcon />
             </InputAdornment>
           ),
+          sx: {
+            backgroundColor: "white",
+            "&:hover": {
+              backgroundColor: "white",
+            },
+            "&.Mui-focused": {
+              backgroundColor: "white",
+            },
+          },
         }}
       />
     </div>

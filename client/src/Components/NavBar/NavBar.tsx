@@ -232,6 +232,7 @@ const NavBar: FunctionComponent<{
                   <div
                     className="sidebar_history_track"
                     key={key}
+                    style={{ borderBottom: "1px solid white" }}
                     onClick={() => {
                       if (userContext?.is_active) {
                         startPlayback({

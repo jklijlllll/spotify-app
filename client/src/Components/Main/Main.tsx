@@ -12,11 +12,11 @@ const Main: FunctionComponent<{
   return (
     <>
       <div
-        className="main_container"
         style={{
-          width: navCollapse ? "calc(100% - 75px)" : "calc(100% - 250px)",
-          left: navCollapse ? "75px" : "250px",
+          left: navCollapse ? "65px" : "240px",
+          width: navCollapse ? "calc(100% - 65px)" : "calc(100% - 230px)",
         }}
+        className="main_container"
       >
         {curComp === CurrentComponent.Recommendations ? (
           <Recommendation update={update[CurrentComponent.Recommendations]} />

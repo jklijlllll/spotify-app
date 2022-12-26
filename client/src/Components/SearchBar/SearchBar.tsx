@@ -50,22 +50,28 @@ const SearchBar: FunctionComponent<{
         sx={{
           width: width,
           height: height,
-          ".MuiFilledInput-root": {
-            backgroundColor: "white",
-          },
         }}
         label="Search"
         variant="filled"
-        color="primary"
         size="medium"
         value={searchInput}
         onChange={handleOnChange}
         InputProps={{
+          disableUnderline: true,
           startAdornment: (
             <InputAdornment position="start">
               <SearchIcon />
             </InputAdornment>
           ),
+          sx: {
+            backgroundColor: "white",
+            "&:hover": {
+              backgroundColor: "white",
+            },
+            "&.Mui-focused": {
+              backgroundColor: "white",
+            },
+          },
         }}
         SelectProps={{
           native: true,

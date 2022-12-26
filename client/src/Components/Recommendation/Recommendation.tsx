@@ -1,4 +1,10 @@
-import { Button, CircularProgress, Slider, ToggleButton } from "@mui/material";
+import {
+  Button,
+  CircularProgress,
+  Slider,
+  Chip,
+  Tooltip as ToolTip,
+} from "@mui/material";
 import axios from "axios";
 import React, {
   FunctionComponent,
@@ -17,6 +23,7 @@ import useHistory from "../../Hooks/useHistory";
 import SearchBar from "../SearchBar";
 import { ArtistInterface, TrackInterface } from "../../Types/SpotifyApi";
 import "./Recommendation.css";
+import TrackAttributes from "../TrackAttributes";
 
 // TODO: improve UI
 // TODO: add scrolling and load on type (axios cancel token)
@@ -46,6 +53,7 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
       value: { label: string; value: string }[];
     };
   };
+
   const seeds: seedType = useMemo(() => {
     return {
       artist: {
@@ -147,7 +155,13 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
     };
   }, []);
 
+  const chartValues = Object.keys(values).filter((attr) => {
+    return attr !== "Popularity" && attr !== "Tempo" && attr !== "Loudness";
+  });
+
   const [curValues, setCurValues] = useState(values);
+
+  const sliderHeight = "200px";
 
   const sortedValues = Object.keys(values).sort(function (a, b) {
     const aVal = curValues[a];
@@ -186,12 +200,22 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
   const [closestTrack, setClosestTrack] = useState<TrackInterface | null>(null);
 
   const getClosestTrack = (attribute: string, value: number) => {
-    const track = historyTracks.reduce(function (prev, curr) {
-      return Math.abs((curr.audio_features?.[attribute] as number) - value) <
-        Math.abs((prev.audio_features?.[attribute] as number) - value)
-        ? curr
-        : prev;
-    });
+    let track;
+    if (attribute === "popularity") {
+      track = historyTracks.reduce(function (prev, curr) {
+        return Math.abs(curr.popularity - value) <
+          Math.abs(prev.popularity - value)
+          ? curr
+          : prev;
+      });
+    } else {
+      track = historyTracks.reduce(function (prev, curr) {
+        return Math.abs((curr.audio_features?.[attribute] as number) - value) <
+          Math.abs((prev.audio_features?.[attribute] as number) - value)
+          ? curr
+          : prev;
+      });
+    }
 
     setClosestTrack(track);
   };
@@ -360,6 +384,7 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
       width: "100%",
       display: "flex",
       border: "1px solid black",
+      backgroundColor: "white",
       borderRadius: "5px",
     }),
     menu: () => ({
@@ -432,6 +457,9 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
   const [searchInput, setSearchInput] = useState<string>("");
   const [searchResults, setSearchResults] = useState<TrackInterface[]>([]);
 
+  const searchResultsHeight = "60px";
+  const searchResultsWidth = "600px";
+
   return (
     <>
       <div
@@ -443,12 +471,15 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
           setSearchInput={setSearchInput}
           setSearchResults={setSearchResults}
           headers={userContext?.headers}
-          height={"60px"}
-          width={"600px"}
+          height={searchResultsHeight}
+          width={searchResultsWidth}
           limit={5}
         />
       </div>
-      <div className="search_results_container">
+      <div
+        className="search_results_container"
+        style={{ width: searchResultsWidth }}
+      >
         {searchResultsOpen ? (
           searchResults.map((result, key) => (
             <div
@@ -470,7 +501,14 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
                 src={result.album.images[2].url}
                 alt="track cover"
               />
-              <h4 className="search_result_text">{result.name}</h4>
+              <div className="search_result_info">
+                <h4 className="search_result_name">{result.name}</h4>
+                <h4 className="search_result_artists">
+                  {result.artists
+                    .map((artist: ArtistInterface) => artist.name)
+                    .join(", ")}
+                </h4>
+              </div>
             </div>
           ))
         ) : (
@@ -586,233 +624,309 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
             />
           </div>
 
-          <div className="slider_container_vertical_align">
+          <div className="slider_select_container">
             <div className="slider_container_flex">
-              <div className="slider_flex">
+              <div className="slider_flex_top">
                 {sortedValues
+                  .filter((value) => curValues[value].enabled)
                   .slice(0, Math.ceil(Object.keys(values).length) / 2)
                   .map((attribute, key) => (
                     <div className="slider_container" key={key}>
-                      <div className="slider_header">
-                        <ToggleButton
-                          value="check"
-                          selected={curValues[attribute].enabled}
-                          onChange={() => toggleValue(attribute)}
+                      <h4 className="slider_title">{attribute}</h4>
+
+                      <div className="slider_border">
+                        <Slider
+                          disableSwap
                           sx={{
-                            height: "30px",
-                            width: "30px",
+                            '& input[type="range"]': {
+                              WebkitAppearance: "slider-vertical",
+                            },
+                            color: "white",
+                            height: sliderHeight,
+                            ".MuiSlider-valueLabel": {
+                              left: "calc(-50% - 4px)",
+                              backgroundColor: "transparent",
+                            },
                           }}
-                        >
-                          {curValues[attribute].enabled ? (
-                            <CheckIcon />
-                          ) : (
-                            <ClearIcon />
-                          )}
-                        </ToggleButton>
-                        <h4 className="slider_title">{attribute}</h4>
-                      </div>
-                      <Slider
-                        disableSwap
-                        sx={{
-                          width: "100%",
-                        }}
-                        min={curValues[attribute].min}
-                        max={curValues[attribute].max}
-                        step={curValues[attribute].step}
-                        value={curValues[attribute].value}
-                        onChange={(event, newValue, activeThumb) => {
-                          handleChange(attribute, newValue);
-                          getClosestTrack(
-                            attribute.toLowerCase(),
-                            typeof newValue === "number"
-                              ? newValue
-                              : newValue[activeThumb]
-                          );
-                        }}
-                        valueLabelDisplay="auto"
-                        valueLabelFormat={(value) =>
-                          historyTracks.length === 0 ||
-                          closestTrack === null ? (
-                            <div>{value}</div>
-                          ) : (
-                            <div className="track_overlay">
-                              <div className="track_overlay_container">
-                                <img
-                                  className="track_overlay_image"
-                                  alt="track cover"
-                                  src={closestTrack.album.images[2].url}
-                                ></img>
-                                <div className="track_overlay_info">
-                                  <h4 className="track_overlay_title">
-                                    {closestTrack.name}
-                                  </h4>
-                                  <h4 className="track_overlay_name">
-                                    {closestTrack.artists
-                                      .map(
-                                        (artist: ArtistInterface) => artist.name
-                                      )
-                                      .join(", ")}
-                                  </h4>
-                                  {closestTrack.audio_features ? (
-                                    <h4 className="track_overlay_attribute">
-                                      {attribute +
-                                        ": " +
-                                        closestTrack.audio_features[
-                                          attribute.toLowerCase()
-                                        ]}
+                          orientation="vertical"
+                          min={curValues[attribute].min}
+                          max={curValues[attribute].max}
+                          step={curValues[attribute].step}
+                          value={curValues[attribute].value}
+                          onChange={(event, newValue, activeThumb) => {
+                            handleChange(attribute, newValue);
+                            getClosestTrack(
+                              attribute.toLowerCase(),
+                              typeof newValue === "number"
+                                ? newValue
+                                : newValue[activeThumb]
+                            );
+                          }}
+                          valueLabelDisplay="auto"
+                          valueLabelFormat={(value) =>
+                            historyTracks.length === 0 ||
+                            closestTrack === null ? (
+                              <div>{value}</div>
+                            ) : (
+                              <div className="track_overlay">
+                                <div className="track_overlay_container">
+                                  <img
+                                    className="track_overlay_image"
+                                    alt="track cover"
+                                    src={closestTrack.album.images[2].url}
+                                  ></img>
+                                  <div className="track_overlay_info">
+                                    <h4 className="track_overlay_title">
+                                      {closestTrack.name}
                                     </h4>
-                                  ) : (
-                                    <></>
-                                  )}
+                                    <h4 className="track_overlay_name">
+                                      {closestTrack.artists
+                                        .map(
+                                          (artist: ArtistInterface) =>
+                                            artist.name
+                                        )
+                                        .join(", ")}
+                                    </h4>
+                                    {attribute !== "Popularity" &&
+                                    closestTrack.audio_features ? (
+                                      <h4 className="track_overlay_attribute">
+                                        {attribute +
+                                          ": " +
+                                          closestTrack.audio_features[
+                                            attribute.toLowerCase()
+                                          ]}
+                                      </h4>
+                                    ) : (
+                                      <h4 className="track_overlay_attribute">
+                                        {attribute +
+                                          ": " +
+                                          closestTrack.popularity}
+                                      </h4>
+                                    )}
+                                  </div>
                                 </div>
+                                <h1 className="track_overlay_value">{value}</h1>
                               </div>
-                              <h1 className="track_overlay_value">{value}</h1>
-                            </div>
-                          )
-                        }
-                        disabled={!curValues[attribute].enabled}
-                      />
+                            )
+                          }
+                          disabled={!curValues[attribute].enabled}
+                        />
+                      </div>
                     </div>
                   ))}
               </div>
 
-              <div className="slider_flex">
+              <div className="slider_flex_bottom">
+                <div style={{ marginLeft: "-5px" }}></div>
                 {sortedValues
+                  .filter((value) => curValues[value].enabled)
                   .slice(
                     Math.ceil(Object.keys(values).length) / 2,
                     Object.keys(values).length
                   )
                   .map((attribute, key) => (
                     <div className="slider_container" key={key}>
-                      <div className="slider_header">
-                        <ToggleButton
-                          value="check"
-                          selected={curValues[attribute].enabled}
-                          onChange={() => toggleValue(attribute)}
+                      <h4 className="slider_title">{attribute}</h4>
+                      <div className="slider_border">
+                        <Slider
+                          disableSwap
                           sx={{
-                            height: "30px",
-                            width: "30px",
+                            '& input[type="range"]': {
+                              WebkitAppearance: "slider-vertical",
+                            },
+                            color: "white",
+                            height: sliderHeight,
+                            ".MuiSlider-valueLabel": {
+                              left: "calc(-50% - 4px)",
+                              backgroundColor: "transparent",
+                            },
                           }}
-                        >
-                          {curValues[attribute].enabled ? (
-                            <CheckIcon />
-                          ) : (
-                            <ClearIcon />
-                          )}
-                        </ToggleButton>{" "}
-                        <h4 className="slider_title">{attribute}</h4>
-                      </div>
-                      <Slider
-                        disableSwap
-                        sx={{
-                          width: "100%",
-                        }}
-                        min={curValues[attribute].min}
-                        max={curValues[attribute].max}
-                        step={curValues[attribute].step}
-                        value={curValues[attribute].value}
-                        onChange={(event, newValue, activeThumb) => {
-                          handleChange(attribute, newValue);
-                          getClosestTrack(
-                            attribute.toLowerCase(),
-                            typeof newValue === "number"
-                              ? newValue
-                              : newValue[activeThumb]
-                          );
-                        }}
-                        valueLabelDisplay="auto"
-                        valueLabelFormat={(value) =>
-                          historyTracks.length === 0 ||
-                          closestTrack === null ? (
-                            <div>{value}</div>
-                          ) : (
-                            <div className="track_overlay">
-                              <div className="track_overlay_container">
-                                <img
-                                  className="track_overlay_image"
-                                  alt="track cover"
-                                  src={closestTrack.album.images[2].url}
-                                ></img>
-                                <div className="track_overlay_info">
-                                  <h4 className="track_overlay_title">
-                                    {closestTrack.name}
-                                  </h4>
-                                  <h4 className="track_overlay_name">
-                                    {closestTrack.artists
-                                      .map(
-                                        (artist: ArtistInterface) => artist.name
-                                      )
-                                      .join(", ")}
-                                  </h4>
-                                  {closestTrack.audio_features ? (
-                                    <h4 className="track_overlay_attribute">
-                                      {attribute +
-                                        ": " +
-                                        closestTrack.audio_features[
-                                          attribute.toLowerCase()
-                                        ]}
+                          orientation="vertical"
+                          min={curValues[attribute].min}
+                          max={curValues[attribute].max}
+                          step={curValues[attribute].step}
+                          value={curValues[attribute].value}
+                          onChange={(event, newValue, activeThumb) => {
+                            handleChange(attribute, newValue);
+                            getClosestTrack(
+                              attribute.toLowerCase(),
+                              typeof newValue === "number"
+                                ? newValue
+                                : newValue[activeThumb]
+                            );
+                          }}
+                          valueLabelDisplay="auto"
+                          valueLabelFormat={(value) =>
+                            historyTracks.length === 0 ||
+                            closestTrack === null ? (
+                              <div>{value}</div>
+                            ) : (
+                              <div className="track_overlay">
+                                <div className="track_overlay_container">
+                                  <img
+                                    className="track_overlay_image"
+                                    alt="track cover"
+                                    src={closestTrack.album.images[2].url}
+                                  ></img>
+                                  <div className="track_overlay_info">
+                                    <h4 className="track_overlay_title">
+                                      {closestTrack.name}
                                     </h4>
-                                  ) : (
-                                    <></>
-                                  )}
+                                    <h4 className="track_overlay_name">
+                                      {closestTrack.artists
+                                        .map(
+                                          (artist: ArtistInterface) =>
+                                            artist.name
+                                        )
+                                        .join(", ")}
+                                    </h4>
+                                    {closestTrack.audio_features ? (
+                                      <h4 className="track_overlay_attribute">
+                                        {attribute +
+                                          ": " +
+                                          closestTrack.audio_features[
+                                            attribute.toLowerCase()
+                                          ]}
+                                      </h4>
+                                    ) : (
+                                      <></>
+                                    )}
+                                  </div>
                                 </div>
+                                <h1 className="track_overlay_value">{value}</h1>
                               </div>
-                              <h1 className="track_overlay_value">{value}</h1>
-                            </div>
-                          )
-                        }
-                        disabled={!curValues[attribute].enabled}
-                      />
+                            )
+                          }
+                          disabled={!curValues[attribute].enabled}
+                        />
+                      </div>
                     </div>
                   ))}
               </div>
             </div>
-            <div className="recommedation_button">
-              <Button
-                sx={{
-                  marginBottom: recInfo.length === 0 ? "20px" : "0px",
-                  width: "250px",
-                  height: "40px",
-                  marginTop: "20px",
-                }}
-                variant="contained"
-                onClick={() => handleSubmit()}
-              >
-                Get Recommendations
-              </Button>
+            <div className="attribute_toggle_container">
+              {sortedValues.map((attribute, key) => (
+                <div key={key}>
+                  <Chip
+                    sx={{
+                      backgroundColor: curValues[attribute].enabled
+                        ? "#1db954"
+                        : "#595959",
+                      "&:hover": {
+                        backgroundColor: curValues[attribute].enabled
+                          ? "#158a3f"
+                          : "#b3b3b3",
+                      },
+                    }}
+                    label={attribute}
+                    onClick={() => toggleValue(attribute)}
+                    onDelete={() => toggleValue(attribute)}
+                    deleteIcon={
+                      curValues[attribute].enabled ? (
+                        <ClearIcon />
+                      ) : (
+                        <CheckIcon />
+                      )
+                    }
+                  />
+                </div>
+              ))}
             </div>
+          </div>
+          <div className="recommendation_button">
+            <Button
+              sx={{
+                marginBottom: recInfo.length === 0 ? "20px" : "0px",
+                width: "250px",
+                height: "40px",
+                marginTop: "20px",
+                backgroundColor: "#1db954",
+                "&:hover": {
+                  backgroundColor: "#158a3f",
+                },
+              }}
+              variant="contained"
+              onClick={() => handleSubmit()}
+            >
+              Get Recommendations
+            </Button>
           </div>
         </div>
 
-        <div className="recommended_tracks_container">
+        <div
+          className="recommended_tracks_container"
+          style={{ padding: recInfo.length === 0 && !loading ? "0px" : "10px" }}
+        >
           {loading ? (
             <CircularProgress style={{ height: "300px", width: "300px" }} />
           ) : (
             recInfo.map((track, key) => (
-              <div
-                className="track_container"
-                onClick={() => {
-                  if (userContext?.is_active) {
-                    startPlayback({
-                      device_id: userContext.deviceId,
-                      position_ms: 0,
-                      headers: userContext.headers,
-                      uris: [track.uri],
-                    });
-                  }
+              <ToolTip
+                componentsProps={{
+                  tooltip: {
+                    sx: {
+                      bgcolor: "transparent",
+                      "& .MuiTooltip-arrow": {
+                        color: "transparent",
+                      },
+                    },
+                  },
                 }}
-                key={key}
+                placement="top-end"
+                title={
+                  <TrackAttributes
+                    labels={chartValues}
+                    data={
+                      historyTracks.length !== 0 &&
+                      historyTracks.find((t) => t.id === track.id) &&
+                      historyTracks.find((t) => t.id === track.id)!
+                        .audio_features
+                        ? new Map(
+                            Object.entries(
+                              historyTracks.find((t) => t.id === track.id)!
+                                .audio_features!
+                            )
+                          ).set(
+                            "popularity",
+                            historyTracks.find((t) => t.id === track.id)!
+                              .popularity
+                          )
+                        : new Map<string, number>()
+                    }
+                    title={
+                      historyTracks.length !== 0 &&
+                      historyTracks.find((t) => t.id === track.id)
+                        ? historyTracks.find((t) => t.id === track.id)!.name
+                        : ""
+                    }
+                  />
+                }
               >
-                <img src={track.album.images[2].url} alt="song cover" />
-                <div className="track_info_container">
-                  <div className="track_info_title">{track.name} </div>
-                  <div className="track_info_name">
-                    {track.artists
-                      .map((artist: ArtistInterface) => artist.name)
-                      .join(", ")}
+                <div
+                  className="track_container"
+                  onClick={() => {
+                    if (userContext?.is_active) {
+                      startPlayback({
+                        device_id: userContext.deviceId,
+                        position_ms: 0,
+                        headers: userContext.headers,
+                        uris: [track.uri],
+                      });
+                    }
+                  }}
+                  key={key}
+                >
+                  <img src={track.album.images[2].url} alt="song cover" />
+                  <div className="track_info_container">
+                    <div className="track_info_title">{track.name} </div>
+                    <div className="track_info_name">
+                      {track.artists
+                        .map((artist: ArtistInterface) => artist.name)
+                        .join(", ")}
+                    </div>
                   </div>
                 </div>
-              </div>
+              </ToolTip>
             ))
           )}
         </div>
@@ -834,7 +948,14 @@ const Recommendation: FunctionComponent<{ update: number }> = ({ update }) => {
               tracks={recInfo}
             />
             <Button
-              sx={{ marginTop: "10px", marginBottom: "100px" }}
+              sx={{
+                marginTop: "10px",
+                marginBottom: "100px",
+                backgroundColor: "#1db954",
+                "&:hover": {
+                  backgroundColor: "#158a3f",
+                },
+              }}
               variant="contained"
               onClick={() => setAddOpen(true)}
             >

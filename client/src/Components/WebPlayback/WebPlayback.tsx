@@ -37,10 +37,27 @@ import {
   WebPlaybackState,
 } from "../../Types/SpotifyApi";
 import "./WebPlayback.css";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
 
 // TODO: add device control
 // TODO: save player state and volume on reload
 // TODO: retain volume on playback transfer
+
+const theme = createTheme({
+  components: {
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          height: "64px",
+          width: "64px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        },
+      },
+    },
+  },
+});
 
 const WebPlayback: FunctionComponent<{
   current_track: TrackInterface | null;
@@ -59,6 +76,9 @@ const WebPlayback: FunctionComponent<{
   const [is_liked, setIsLiked] = useState<boolean>(false);
 
   const userContext = useContext(UserContext);
+
+  const iconColor = "white";
+  const iconHoverColor = "#1d1d1d";
 
   useHistory({ current_track: current_track, headers: userContext?.headers });
 
@@ -115,22 +135,35 @@ const WebPlayback: FunctionComponent<{
               return;
             }
 
-            console.log(state);
-            setTrack(state.track_window.current_track);
-            setPaused(state.paused);
-            setPosition(state.position);
-            setDuration(state.duration);
-            setUpdateTime(performance.now());
-
-            player.getCurrentState().then((state: WebPlaybackState) => {
-              !state ? setActive(false) : setActive(true);
-            });
+            axios
+              .get(
+                `https://api.spotify.com/v1/tracks/${state.track_window.current_track.id}`,
+                { headers: userContext?.headers }
+              )
+              .then((response) => {
+                console.log(response.data);
+                setTrack(response.data);
+                setPaused(state.paused);
+                setPosition(state.position);
+                setDuration(state.duration);
+                setUpdateTime(performance.now());
+                player.getCurrentState().then((state: WebPlaybackState) => {
+                  !state ? setActive(false) : setActive(true);
+                });
+              })
+              .catch((error) => console.log(error));
           }
         );
         player.connect();
       };
     }
-  }, [userContext?.token, setActive, setDeviceId, setTrack]);
+  }, [
+    userContext?.token,
+    userContext?.headers,
+    setActive,
+    setDeviceId,
+    setTrack,
+  ]);
 
   const transferPlayback = useCallback(
     (deviceId: string) => {
@@ -245,7 +278,7 @@ const WebPlayback: FunctionComponent<{
 
   if (userContext?.is_active && current_track !== null) {
     return (
-      <>
+      <ThemeProvider theme={theme}>
         <div className="position_container">
           <Slider
             sx={{
@@ -257,10 +290,10 @@ const WebPlayback: FunctionComponent<{
               },
               "& .MuiSlider-track": {
                 left: "-10px !important",
-                color: "black",
+                color: "white",
               },
               "& .MuiSlider-thumb": {
-                color: "black",
+                color: "white",
               },
             }}
             max={duration}
@@ -290,44 +323,55 @@ const WebPlayback: FunctionComponent<{
                   .join(", ")}
               </div>
             </div>
-            <div className="like_icon_container">
-              {is_liked ? (
-                <IconButton
-                  onClick={() => {
-                    unLikeTrack();
-                  }}
-                >
-                  <FavoriteIcon fontSize="large" />
-                </IconButton>
-              ) : (
-                <IconButton
-                  onClick={() => {
-                    likeTrack();
-                  }}
-                >
-                  <FavoriteBorderIcon fontSize="large" />
-                </IconButton>
-              )}
-            </div>
+
+            {is_liked ? (
+              <IconButton
+                onClick={() => {
+                  unLikeTrack();
+                }}
+                sx={{ "&:hover": { backgroundColor: iconHoverColor } }}
+              >
+                <FavoriteIcon fontSize="large" sx={{ color: iconColor }} />
+              </IconButton>
+            ) : (
+              <IconButton
+                onClick={() => {
+                  likeTrack();
+                }}
+                sx={{ "&:hover": { backgroundColor: iconHoverColor } }}
+              >
+                <FavoriteBorderIcon
+                  fontSize="large"
+                  sx={{ color: iconColor }}
+                />
+              </IconButton>
+            )}
           </div>
 
           <div className="playback_controls">
-            <IconButton onClick={() => player!.previousTrack()}>
-              <SkipPreviousIcon fontSize="large" />
+            <IconButton
+              onClick={() => player!.previousTrack()}
+              sx={{ "&:hover": { backgroundColor: iconHoverColor } }}
+            >
+              <SkipPreviousIcon fontSize="large" sx={{ color: iconColor }} />
             </IconButton>
             <IconButton
               onClick={() => {
                 player!.togglePlay();
               }}
+              sx={{ "&:hover": { backgroundColor: iconHoverColor } }}
             >
               {!is_paused ? (
-                <PauseIcon fontSize="large" />
+                <PauseIcon fontSize="large" sx={{ color: iconColor }} />
               ) : (
-                <PlayArrowIcon fontSize="large" />
+                <PlayArrowIcon fontSize="large" sx={{ color: iconColor }} />
               )}
             </IconButton>
-            <IconButton onClick={() => player!.nextTrack()}>
-              <SkipNextIcon fontSize="large" />
+            <IconButton
+              onClick={() => player!.nextTrack()}
+              sx={{ "&:hover": { backgroundColor: iconHoverColor } }}
+            >
+              <SkipNextIcon fontSize="large" sx={{ color: iconColor }} />
             </IconButton>
           </div>
           <div className="device_controls">
@@ -340,7 +384,7 @@ const WebPlayback: FunctionComponent<{
                         '& input[type="range"]': {
                           WebkitAppearance: "slider-vertical",
                         },
-                        color: "black",
+                        color: "white",
                         backgroundColor: "transparent",
                         height: "140px",
                       }}
@@ -353,21 +397,37 @@ const WebPlayback: FunctionComponent<{
                     />
                   </div>
                 }
+                componentsProps={{
+                  tooltip: { sx: { backgroundColor: "#212121" } },
+                  arrow: { sx: { color: "#212121" } },
+                }}
                 arrow
                 TransitionComponent={Fade}
                 TransitionProps={{ timeout: 600 }}
               >
-                <IconButton>
+                <IconButton
+                  sx={{
+                    marginRight: "20px",
+                    "&:hover": { backgroundColor: iconHoverColor },
+                  }}
+                >
                   {volume === 0 ? (
-                    <VolumeOffIcon fontSize="large" />
+                    <VolumeOffIcon fontSize="large" sx={{ color: iconColor }} />
                   ) : volume < 50 ? (
-                    <VolumeDownIcon fontSize="large" />
+                    <VolumeDownIcon
+                      fontSize="large"
+                      sx={{ color: iconColor }}
+                    />
                   ) : (
-                    <VolumeUpIcon fontSize="large" />
+                    <VolumeUpIcon fontSize="large" sx={{ color: iconColor }} />
                   )}
                 </IconButton>
               </Tooltip>
               <Tooltip
+                componentsProps={{
+                  tooltip: { sx: { backgroundColor: "#212121" } },
+                  arrow: { sx: { color: "#212121" } },
+                }}
                 title={
                   <div className="devices_container">
                     <h1 className="devices_title">Devices</h1>
@@ -375,20 +435,36 @@ const WebPlayback: FunctionComponent<{
                       <div
                         className="device"
                         key={key}
-                        style={{ color: result.is_active ? "green" : "black" }}
+                        style={{ color: result.is_active ? "green" : "white" }}
                         onClick={() => {
                           setDevicesOpen(false);
                           transferPlayback(result.id);
                         }}
                       >
                         {result.type.toLowerCase() === "computer" ? (
-                          <ComputerIcon />
+                          <ComputerIcon
+                            sx={{
+                              color: result.is_active ? "green" : iconColor,
+                            }}
+                          />
                         ) : result.type.toLowerCase() === "smartphone" ? (
-                          <SmartphoneIcon />
+                          <SmartphoneIcon
+                            sx={{
+                              color: result.is_active ? "green" : iconColor,
+                            }}
+                          />
                         ) : result.type.toLowerCase() === "speaker" ? (
-                          <SpeakerIcon />
+                          <SpeakerIcon
+                            sx={{
+                              color: result.is_active ? "green" : iconColor,
+                            }}
+                          />
                         ) : (
-                          <DevicesOtherIcon />
+                          <DevicesOtherIcon
+                            sx={{
+                              color: result.is_active ? "green" : iconColor,
+                            }}
+                          />
                         )}
                         <h2>{result.name}</h2>
                       </div>
@@ -402,14 +478,19 @@ const WebPlayback: FunctionComponent<{
                 arrow
                 placement="top-start"
               >
-                <IconButton sx={{ marginRight: "20px" }}>
-                  <DevicesIcon fontSize="large" />
+                <IconButton
+                  sx={{
+                    marginRight: "20px",
+                    "&:hover": { backgroundColor: iconHoverColor },
+                  }}
+                >
+                  <DevicesIcon fontSize="large" sx={{ color: iconColor }} />
                 </IconButton>
               </Tooltip>
             </div>
           </div>
         </div>
-      </>
+      </ThemeProvider>
     );
   } else {
     return (
